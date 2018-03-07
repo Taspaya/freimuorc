@@ -12,6 +12,8 @@
 #include <imgui\imgui_impl_sdl_gl3.h>
 
 
+int display_w, display_h;
+
 bool reset_escena_uno = true;
 bool reset_escena_dos = true;
 bool reset_escena_tres = true;
@@ -133,6 +135,9 @@ void myGUI() {
 
 void myInitCode(int width, int height) {
 
+	display_w = width;
+	display_h = height;
+
 	glViewport(0, 0, width, height);
 	glClearColor(myPalette[0].r, myPalette[0].g, myPalette[0].b, myPalette[0].a);
 	glClearDepth(1.f);
@@ -187,6 +192,10 @@ void myRenderCode(double currentTime) {
 		}
 
 		//Código parte dos
+		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+		RV::_modelView = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -15 + (int)(currentTime * 100) % 1000 * 0.01f));    //kill me plz   
+
+		RV::_MVP = RV::_projection * RV::_modelView;
 
 	}
 	else if (scene == 2) {
@@ -200,6 +209,12 @@ void myRenderCode(double currentTime) {
 		}
 
 		//Código parte tres
+		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+		//glm::mat4 fov = glm::perspectiveFov(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
+
+		//glm::mat4 fov = glm::perspectiveFov(glm::radians((int)(currentTime * 100) % 1000 * 0.01f), (float)display_w, (float)display_h, RV::zNear, RV::zFar);
+		//RV::_modelView = glm::perspectiveFov(glm::radians((int)(currentTime * 100) % 1000 * 0.01f), (float)display_w, (float)display_h, RV::zNear, RV::zFar);
+		RV::_MVP = RV::_projection * RV::_modelView;
 
 	}
 
