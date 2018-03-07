@@ -172,7 +172,7 @@ void myRenderCode(double currentTime) {
 
 		}
 
-		//RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
+		
 		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 		RV::_modelView = glm::translate(glm::mat4(1.0f), glm::vec3(5-(int)(currentTime*100)%1000*0.01f, 0.f, -7.f));    //kill me plz   
 
@@ -191,7 +191,7 @@ void myRenderCode(double currentTime) {
 
 		}
 
-		//Código parte dos
+		//Código parte dos: Close up
 		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 		RV::_modelView = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -15 + (int)(currentTime * 100) % 1000 * 0.01f));    //kill me plz   
 
@@ -208,12 +208,10 @@ void myRenderCode(double currentTime) {
 			//Resetear variables
 		}
 
-		//Código parte tres
-		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-		//glm::mat4 fov = glm::perspectiveFov(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
+		//Código parte tres: Modifies the FOV
+		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 15), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+		RV::_projection = glm::perspective(glm::radians(65 + 30*(float)sin(currentTime)), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
 
-		//glm::mat4 fov = glm::perspectiveFov(glm::radians((int)(currentTime * 100) % 1000 * 0.01f), (float)display_w, (float)display_h, RV::zNear, RV::zFar);
-		//RV::_modelView = glm::perspectiveFov(glm::radians((int)(currentTime * 100) % 1000 * 0.01f), (float)display_w, (float)display_h, RV::zNear, RV::zFar);
 		RV::_MVP = RV::_projection * RV::_modelView;
 
 	}
