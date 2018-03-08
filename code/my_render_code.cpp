@@ -14,12 +14,6 @@
 
 int display_w, display_h;
 
-bool reset_escena_uno = true;
-bool reset_escena_dos = true;
-bool reset_escena_tres = true;
-
-
-
 int scene = 0;
 
 //Colors
@@ -124,7 +118,8 @@ void myGUI() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 		ImGui::RadioButton("Escena 1", &scene, 0); ImGui::SameLine;
 		ImGui::RadioButton("Escena 2", &scene, 1); ImGui::SameLine;
-		ImGui::RadioButton("Escena 3", &scene, 2); 
+		ImGui::RadioButton("Escena 3", &scene, 2); ImGui::SameLine;
+		ImGui::RadioButton("Efecto melodramatico vertiginosamente vertiginoso", &scene, 3);
 	}
 	// .........................
 
@@ -162,34 +157,13 @@ void myRenderCode(double currentTime) {
 
 	if (scene == 0) {			//Travelling lateral				CAUTION: should be in orthonormal projection
 
-		if (reset_escena_uno) {
-
-			reset_escena_uno = false;
-			reset_escena_dos = true;
-			reset_escena_tres = true;
-
-			//Resetear variables
-
-		}
-
-		
 		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-		RV::_modelView = glm::translate(glm::mat4(1.0f), glm::vec3(5-(int)(currentTime*100)%1000*0.01f, 0.f, -7.f));    //kill me plz   
+		RV::_modelView = glm::translate(glm::mat4(1.0f), glm::vec3((int)currentTime%4, 0.f, -7.f));    //kill me plz   5-(int)(currentTime*100)%1000*0.01f
 
 		RV::_MVP = RV::_projection * RV::_modelView;
 
 	}
 	else if (scene == 1) {
-
-		if (reset_escena_dos) {
-
-			reset_escena_uno = true;
-			reset_escena_dos = false;
-			reset_escena_tres = true;
-
-			//Resetear variables
-
-		}
 
 		//Código parte dos: Close up
 		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
@@ -199,25 +173,27 @@ void myRenderCode(double currentTime) {
 
 	}
 	else if (scene == 2) {
-		if (reset_escena_tres) {
-
-			reset_escena_uno = true;
-			reset_escena_dos = true;
-			reset_escena_tres = false;
-
-			//Resetear variables
-		}
 
 		//Código parte tres: Modifies the FOV
-		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 15), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+		RV::_modelView = glm::lookAt(glm::vec3(0, 0, 7), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 		RV::_projection = glm::perspective(glm::radians(65 + 30*(float)sin(currentTime)), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
 
 		RV::_MVP = RV::_projection * RV::_modelView;
 
 	}
+	else if (scene == 3) {
+
+		//Código parte tres: Modifies the FOV
+		RV::_modelView = glm::lookAt(glm::vec3(0, 0, 7), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
+		RV::_projection = glm::perspective(glm::radians(50.f + (int)(currentTime * 100) % 500 * 0.1f), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
+		glm::mat4 tra = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -5 - (int)(currentTime * 100) % 1000 * 0.01f));
+
+
+		RV::_MVP = RV::_projection * RV::_modelView * tra;
+
+	}
 
 	Cube::drawCity(currentTime);
-
 	ImGui::Render();
 }
 
