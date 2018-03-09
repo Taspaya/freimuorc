@@ -186,7 +186,7 @@ void myRenderCode(double currentTime) {
 		//Código parte tres: Modifies the FOV
 		RV::_modelView = glm::lookAt(glm::vec3(0, 0, 7), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 		RV::_projection = glm::perspective(glm::radians(50.f + (int)(currentTime * 100) % 500 * 0.1f), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
-		glm::mat4 tra = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -5 - (int)(currentTime * 100) % 1000 * 0.01f));
+		glm::mat4 tra = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -5 + (int)(currentTime * 100) % 1000 * 0.01f));
 
 
 		RV::_MVP = RV::_projection * RV::_modelView * tra;
