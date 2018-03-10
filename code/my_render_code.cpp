@@ -12,11 +12,13 @@
 #include <imgui\imgui_impl_sdl_gl3.h>
 
 
+//Auxiliar variables used to set the projection of the camera
 int display_w, display_h;
 
+//Scene to display: values are changed through GUI (radio buttons)
 int scene = 0;
 
-//Colors
+//Vector array of colors: Color palette
 glm::vec4 myPalette[5] = {
 
 	//Peter river
@@ -36,15 +38,13 @@ glm::vec4 myPalette[5] = {
 
 };
 
+//Namespace to draw the cubes: used to draw the city buildings and planes
 namespace Cube {
 	void setupCube();
 	void cleanupCube();
 	void updateCube(const glm::mat4& transform);
 	void drawCube();
 	void drawCity(double currentTime);
-
-	
-
 	void updateColor(const glm::vec4 newColor);
 }
 
@@ -52,7 +52,7 @@ namespace ImGui {
 	void Render();
 }
 
-//PENSAR SI SE INCLUYEN TODAS O NO
+
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
 	const float zNear = 1.f;
@@ -116,9 +116,17 @@ void myGUI() {
 	// Do your GUI code here....
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
+
+		//Changes to scene 1: Lateral Travelling
 		ImGui::RadioButton("Escena 1", &scene, 0); ImGui::SameLine;
+
+		//Changes to scene 2: Zoom-in or close up
 		ImGui::RadioButton("Escena 2", &scene, 1); ImGui::SameLine;
+
+		//Changes to scene 3: FOV (field of view) modification
 		ImGui::RadioButton("Escena 3", &scene, 2); ImGui::SameLine;
+
+		//Changes to scene 4: Vertigo effect: combination of scenes 2 & 3
 		ImGui::RadioButton("Efecto melodramatico vertiginosamente vertiginoso", &scene, 3);
 	}
 	// .........................
@@ -130,6 +138,7 @@ void myGUI() {
 
 void myInitCode(int width, int height) {
 
+	//Set the auxiliar variables to the function-passed paramenters
 	display_w = width;
 	display_h = height;
 
@@ -140,11 +149,8 @@ void myInitCode(int width, int height) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	int aux = 100;
-	
-
+	//Establish our default camera to have a perspective projection
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
-	//RV::_projection = glm::ortho((float)(-width / aux), (float)(width / aux), (float)(-height / aux), (float)(height / aux), 0.01f, 100.f);
 
 	Cube::setupCube();
 }
@@ -153,37 +159,46 @@ void myInitCode(int width, int height) {
 void myRenderCode(double currentTime) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//Scene 1: Lateral Travelling
+	if (scene == 0) {
 
+		//CAUTION: should be in orthonormal projection
+		//Sets the camera projection to orthonormal projection
 
-	if (scene == 0) {			//Travelling lateral				CAUTION: should be in orthonormal projection
+		//Moves the camera from left to right
+		glm::mat4 travelling = glm::translate(glm::mat4(1.0f), glm::vec3((int)currentTime%4, 0.f, -7.f));    //kill me plz   5-(int)(currentTime*100)%1000*0.01f
 
-		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-		RV::_modelView = glm::translate(glm::mat4(1.0f), glm::vec3((int)currentTime%4, 0.f, -7.f));    //kill me plz   5-(int)(currentTime*100)%1000*0.01f
-
-		RV::_MVP = RV::_projection * RV::_modelView;
-
+		//Sets the MVP to the multiplication of the projection matrix by the lateral travelling translation
+		RV::_MVP = RV::_projection * travelling;
 	}
+
+	//Scene 2: Close up
 	else if (scene == 1) {
 
-		//Código parte dos: Close up
-		RV::_modelView = glm::lookAt(glm::vec3(0, 5, 10), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-		RV::_modelView = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -15 + (int)(currentTime * 100) % 1000 * 0.01f));    //kill me plz   
+		//Sets the camera projection to perspective projection
 
-		RV::_MVP = RV::_projection * RV::_modelView;
+		//Moves the camera from front to back
+		glm::mat4 closeup = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -15 + (int)(currentTime * 100) % 1000 * 0.01f));    //kill me plz
 
+		//Sets the MVP to the multiplication of the projection matrix by the lateral travelling translation
+		RV::_MVP = RV::_projection * closeup;
 	}
+
+	//Scene 3: FOV
 	else if (scene == 2) {
 
-		//Código parte tres: Modifies the FOV
+		//Sets the position of the camera
 		RV::_modelView = glm::lookAt(glm::vec3(0, 0, 7), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-		RV::_projection = glm::perspective(glm::radians(65 + 30*(float)sin(currentTime)), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
+
+		//Moves the camera from closed FOC to openned FOV
+		RV::_projection = glm::perspective(glm::radians(65 + 30*((currentTime * 100) % 1000)), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
 
 		RV::_MVP = RV::_projection * RV::_modelView;
 
 	}
 	else if (scene == 3) {
 
-		//Código parte tres: Modifies the FOV
+		//Cï¿½digo parte tres: Modifies the FOV
 		RV::_modelView = glm::lookAt(glm::vec3(0, 0, 7), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 		RV::_projection = glm::perspective(glm::radians(50.f + (int)(currentTime * 100) % 500 * 0.1f), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
 		glm::mat4 tra = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -5 + (int)(currentTime * 100) % 1000 * 0.01f));
@@ -425,9 +440,9 @@ namespace Cube {
 		//Edificio 1
 		t = glm::translate(glm::mat4(1.0f), glm::vec3(2, 0.f, -2.f));
 		objMat = t*s;
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));						
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myPalette[1].r, myPalette[1].g, myPalette[1].b, myPalette[1].a);
-		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);	
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 
 		//Edificio 2
 		t = glm::translate(glm::mat4(1.0f), glm::vec3(4, 0.f, -2.f));
@@ -500,7 +515,7 @@ namespace Cube {
 		glDisable(GL_PRIMITIVE_RESTART);
 
 
-		
+
 	}
 
 
