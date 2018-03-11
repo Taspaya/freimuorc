@@ -41,6 +41,9 @@ glm::vec4 myPalette[5] = {
 
 };
 
+//Reset scenes
+bool scene_one_reset = true;
+
 //Namespace to draw the cubes: used to draw the city buildings and planes
 namespace Cube {
 	void setupCube();
@@ -112,7 +115,7 @@ void GLmousecb(MouseEvent ev) {
 	RV::prevMouse.lasty = ev.posy;
 }
 
-void myGUI() {
+void GUI() {
 	bool show = true;
 	ImGui::Begin("Simulation Parameters", &show, 0);
 
@@ -121,16 +124,16 @@ void myGUI() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 
 		//Changes to scene 1: Lateral Travelling
-		ImGui::RadioButton("Escena 1", &scene, 0); ImGui::SameLine;
+		ImGui::RadioButton("Exercisi 1: Travelling Lateral", &scene, 0); ImGui::SameLine;
 
 		//Changes to scene 2: Zoom-in or close up
-		ImGui::RadioButton("Escena 2", &scene, 1); ImGui::SameLine;
+		ImGui::RadioButton("Exercisi 2.a: Close-up", &scene, 1); ImGui::SameLine;
 
 		//Changes to scene 3: FOV (field of view) modification
-		ImGui::RadioButton("Escena 3", &scene, 2); ImGui::SameLine;
+		ImGui::RadioButton("Exercisi 2.a: FOV", &scene, 2); ImGui::SameLine;
 
 		//Changes to scene 4: Vertigo effect: combination of scenes 2 & 3
-		ImGui::RadioButton("Efecto melodramatico vertiginosamente vertiginoso", &scene, 3);
+		ImGui::RadioButton("Exercisi 3: Inverse dolly effect", &scene, 3);
 	}
 	// .........................
 
@@ -165,51 +168,85 @@ void myRenderCode(double currentTime) {
 	//Scene 1: Lateral Travelling
 	if (scene == 0) {
 
-		//CAUTION: should be in orthonormal projection
+		//Auxiliar variable for orthonormal projection distance
+		int aux = 100;
+
 		//Sets the camera projection to orthonormal projection
+		RV::_projection = RV::_projection = glm::ortho((float)(-display_w / aux), (float)(display_w / aux), (float)(-display_h / aux), (float)(display_h / aux), 0.01f, 100.f);
 		
-		
+		//Fixes the position of the camera
+		if (scene_one_reset) {
+			RV::_modelView = glm::rotate(RV::_modelView, glm::radians(30.f), glm::vec3(0.f, 1.f, 0.f));
+			scene_one_reset = false;
+		}
 		//Moves the camera from left to right
 		glm::mat4 travelling = glm::translate(glm::mat4(1.0f), glm::vec3(5-fmod(currentTime, SCENETIME), 0.f, -7.f));
 
 		//Sets the MVP to the multiplication of the projection matrix by the lateral travelling translation
-		RV::_MVP = RV::_projection * travelling;
+		RV::_MVP = RV::_projection * RV::_modelView * travelling;
 	}
 
-	//Scene 2: Close up
+	//Scene 2a: Close up
 	else if (scene == 1) {
 
 		//Sets the camera projection to perspective projection
+		RV::_projection = glm::perspective(RV::FOV, (float)display_w / (float)display_h, RV::zNear, RV::zFar);
+
+		//Value of closup
+		float closeup_val = -10 + fmod(currentTime, SCENETIME / 2);
 
 		//Moves the camera from front to back
-		glm::mat4 closeup = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -15 + fmod(currentTime, SCENETIME)));
+		glm::mat4 closeup = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, closeup_val));
 
 		//Sets the MVP to the multiplication of the projection matrix by the lateral travelling translation
 		RV::_MVP = RV::_projection * closeup;
+
+		//Resets other scenes
+		scene_one_reset = true;
 	}
 
-	//Scene 3: FOV
+	//Scene 2b: FOV
 	else if (scene == 2) {
 
 		//Sets the position of the camera
 		RV::_modelView = glm::lookAt(glm::vec3(0, 0, 7), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
-		//Moves the camera from closed FOC to openned FOV
-		RV::_projection = glm::perspective(glm::radians(65.f + (int)(currentTime * 100) % 1000 * 0.1f), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
+		//Changes the fov values over time
+		float fov = RV::FOV + glm::radians(fmod((currentTime*SCENETIME), 5*SCENETIME));
 
+		//Moves the camera from closed FOV to openned FOV
+		RV::_projection = glm::perspective(fov, (float)display_w / (float)display_h, RV::zNear, RV::zFar);
+
+		//Sets the MVP to the multiplication of the projection matrix (in this case the FOV mod) by the lookat matrix
 		RV::_MVP = RV::_projection * RV::_modelView;
 
+		//Resets other scenes
+		scene_one_reset = true;
+
 	}
+
+	//Scene 3: Reverse dolly effect
 	else if (scene == 3) {
 
-		//C�digo parte tres: Modifies the FOV
-		RV::_modelView = glm::lookAt(glm::vec3(0, 0, 7), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
-		RV::_projection = glm::perspective(glm::radians(50.f + (int)(currentTime * 100) % 500 * 0.1f), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
-		glm::mat4 tra = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -5 + (int)(currentTime * 100) % 1000 * 0.01f));
+		//Sets the position of the camera
+		RV::_modelView = glm::lookAt(glm::vec3(0, 0, 5), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+
+		//Changes the fov values over time
+		float fov = RV::FOV + glm::radians(fmod((currentTime*SCENETIME), 5 * SCENETIME));
+
+		//Value of closup
+		float closeup_val = -6.5 + fmod(currentTime, SCENETIME / 2);
+
+		//Moves the camera from closed FOV to openned FOV
+		RV::_projection = glm::perspective(fov, (float)display_w / (float)display_h, RV::zNear, RV::zFar);
+		glm::mat4 tra = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, closeup_val));
 
 
 		RV::_MVP = RV::_projection * RV::_modelView * tra;
 
+
+		//Resets other scenes
+		scene_one_reset = true;
 	}
 
 	Cube::drawCity(currentTime);
@@ -405,9 +442,6 @@ namespace Cube {
 		glBindVertexArray(0);
 		glDisable(GL_PRIMITIVE_RESTART);
 	}
-
-
-
 	void drawCity(double currentTime) {
 
 		glEnable(GL_PRIMITIVE_RESTART);
@@ -513,8 +547,16 @@ namespace Cube {
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		#pragma endregion
 
+		//Edificio 0
+		t = glm::translate(glm::mat4(1.0f), glm::vec3(0, -1.f, 5.f));
+		s = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 
+		objMat = t * s;
 
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myPalette[3].r, myPalette[3].g, myPalette[3].b, myPalette[3].a);
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
+		
 
 
 		glUseProgram(0);

@@ -11,7 +11,7 @@
 /*extern void PhysicsInit();
 extern void PhysicsUpdate(float dt);
 extern void PhysicsCleanup();*/
-extern void myGUI();
+extern void GUI();
 //
 extern void GLmousecb(MouseEvent ev);
 extern void GLResize(int width, int height);
@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
 		ImGuiIO& io = ImGui::GetIO();
 		
 		
-		myGUI();
+		GUI();
 		//PhysicsUpdate((float)expected_frametime);
 		if(!io.WantCaptureMouse) {
 			MouseEvent ev = {io.MousePos.x, io.MousePos.y, 
