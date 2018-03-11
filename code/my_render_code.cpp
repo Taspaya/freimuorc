@@ -11,6 +11,9 @@
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_sdl_gl3.h>
 
+#include <iostream>
+
+#define SCENETIME 10
 
 //Auxiliar variables used to set the projection of the camera
 int display_w, display_h;
@@ -164,9 +167,10 @@ void myRenderCode(double currentTime) {
 
 		//CAUTION: should be in orthonormal projection
 		//Sets the camera projection to orthonormal projection
-
+		
+		
 		//Moves the camera from left to right
-		glm::mat4 travelling = glm::translate(glm::mat4(1.0f), glm::vec3((int)currentTime%4, 0.f, -7.f));    //kill me plz   5-(int)(currentTime*100)%1000*0.01f
+		glm::mat4 travelling = glm::translate(glm::mat4(1.0f), glm::vec3(5-fmod(currentTime, SCENETIME), 0.f, -7.f));
 
 		//Sets the MVP to the multiplication of the projection matrix by the lateral travelling translation
 		RV::_MVP = RV::_projection * travelling;
@@ -178,7 +182,7 @@ void myRenderCode(double currentTime) {
 		//Sets the camera projection to perspective projection
 
 		//Moves the camera from front to back
-		glm::mat4 closeup = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -15 + (int)(currentTime * 100) % 1000 * 0.01f));    //kill me plz
+		glm::mat4 closeup = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, -15 + fmod(currentTime, SCENETIME)));
 
 		//Sets the MVP to the multiplication of the projection matrix by the lateral travelling translation
 		RV::_MVP = RV::_projection * closeup;
@@ -191,7 +195,7 @@ void myRenderCode(double currentTime) {
 		RV::_modelView = glm::lookAt(glm::vec3(0, 0, 7), glm::vec3(0, 1, 0), glm::vec3(0, 1, 0));
 
 		//Moves the camera from closed FOC to openned FOV
-		RV::_projection = glm::perspective(glm::radians(65 + 30*((currentTime * 100) % 1000)), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
+		RV::_projection = glm::perspective(glm::radians(65.f + (int)(currentTime * 100) % 1000 * 0.1f), (float)display_w / (float)display_h, RV::zNear, RV::zFar);
 
 		RV::_MVP = RV::_projection * RV::_modelView;
 
@@ -401,6 +405,9 @@ namespace Cube {
 		glBindVertexArray(0);
 		glDisable(GL_PRIMITIVE_RESTART);
 	}
+
+
+
 	void drawCity(double currentTime) {
 
 		glEnable(GL_PRIMITIVE_RESTART);
