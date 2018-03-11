@@ -44,6 +44,12 @@ glm::vec4 myPalette[5] = {
 //Reset scenes
 bool scene_one_reset = true;
 
+//Variabels
+float cameraRotation;
+
+//Matrices
+glm::mat4 auxMatrix;
+
 //Namespace to draw the cubes: used to draw the city buildings and planes
 namespace Cube {
 	void setupCube();
@@ -148,6 +154,13 @@ void myInitCode(int width, int height) {
 	display_w = width;
 	display_h = height;
 
+	//Initialize variables
+	scene_one_reset = true;
+	cameraRotation = 30.f;
+
+	//Initialize matrix
+	auxMatrix = glm::rotate(RV::_modelView, glm::radians(cameraRotation), glm::vec3(0.f, 1.f, 0.f));
+
 	glViewport(0, 0, width, height);
 	glClearColor(myPalette[0].r, myPalette[0].g, myPalette[0].b, myPalette[0].a);
 	glClearDepth(1.f);
@@ -176,11 +189,18 @@ void myRenderCode(double currentTime) {
 		
 		//Fixes the position of the camera
 		if (scene_one_reset) {
-			RV::_modelView = glm::rotate(RV::_modelView, glm::radians(30.f), glm::vec3(0.f, 1.f, 0.f));
+			cameraRotation = 30.f;
 			scene_one_reset = false;
 		}
+		else {
+			cameraRotation = 0.f;
+		}
+
+		//Sets the camera orientation
+		RV::_modelView = glm::rotate(auxMatrix, glm::radians(cameraRotation), glm::vec3(0.f, 1.f, 0.f));
+
 		//Moves the camera from left to right
-		glm::mat4 travelling = glm::translate(glm::mat4(1.0f), glm::vec3(5-fmod(currentTime, SCENETIME), 0.f, -7.f));
+		glm::mat4 travelling = glm::translate(glm::mat4(1.0f), glm::vec3(5-fmod(currentTime, SCENETIME/2), 0.f, -7.f));
 
 		//Sets the MVP to the multiplication of the projection matrix by the lateral travelling translation
 		RV::_MVP = RV::_projection * RV::_modelView * travelling;
@@ -239,11 +259,12 @@ void myRenderCode(double currentTime) {
 
 		//Moves the camera from closed FOV to openned FOV
 		RV::_projection = glm::perspective(fov, (float)display_w / (float)display_h, RV::zNear, RV::zFar);
-		glm::mat4 tra = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, closeup_val));
 
+		//Moves the camera from front to back
+		glm::mat4 closeup = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, closeup_val));
 
-		RV::_MVP = RV::_projection * RV::_modelView * tra;
-
+		//The resulting product matrix gives us the vertigp effect by first zooming in and the closing the FOV
+		RV::_MVP = RV::_projection * RV::_modelView * closeup;
 
 		//Resets other scenes
 		scene_one_reset = true;
@@ -547,7 +568,7 @@ namespace Cube {
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		#pragma endregion
 
-		//Edificio 0
+		//Green subject
 		t = glm::translate(glm::mat4(1.0f), glm::vec3(0, -1.f, 5.f));
 		s = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 
@@ -557,6 +578,17 @@ namespace Cube {
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myPalette[3].r, myPalette[3].g, myPalette[3].b, myPalette[3].a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		
+
+		//Green subject
+		t = glm::translate(glm::mat4(1.0f), glm::vec3(0, -1.f, 5.f));
+		s = glm::scale(glm::mat4(1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+
+		objMat = t * s;
+
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myPalette[3].r, myPalette[3].g, myPalette[3].b, myPalette[3].a);
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
+
 
 
 		glUseProgram(0);
