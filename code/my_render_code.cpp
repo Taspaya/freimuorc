@@ -35,11 +35,6 @@ namespace Cube {
 	void cleanupCube();
 	void updateCube(const glm::mat4& transform);
 	void drawCube();
-	void drawCity(double currentTime);
-
-	
-
-	void updateColor(const glm::vec4 newColor);
 }
 
 namespace ImGui {
@@ -145,7 +140,6 @@ void myRenderCode(double currentTime) {
 
 	//Cube::drawCube();
 
-	Cube::drawCity(currentTime);
 
 	ImGui::Render();
 }
@@ -339,93 +333,5 @@ namespace Cube {
 		glBindVertexArray(0);
 		glDisable(GL_PRIMITIVE_RESTART);
 	}
-	void drawCity(double currentTime) {
 
-		glEnable(GL_PRIMITIVE_RESTART);
-		glBindVertexArray(cubeVao);
-		glUseProgram(cubeProgram);
-
-		glm::mat4 t;
-		glm::mat4 r;
-		glm::mat4 s;
-
-		//Edificio 1
-		t = glm::translate(glm::mat4(1.0f), glm::vec3(0, -2.f, 0.f));
-		r = glm::rotate(glm::mat4(1.0f), 5.f, glm::vec3(0.f, 1.f, 0.f));
-		s = glm::scale(glm::mat4(1.0f), glm::vec3(1.f, 4.f, 1.f));
-
-		objMat = t*s;
-
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
-		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myPalette[1].r, myPalette[1].g, myPalette[1].b, myPalette[1].a);
-		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
-
-
-		////Edificio 2
-		t = glm::translate(glm::mat4(1.0f), glm::vec3(2, 1.f, 0.f));
-		r = glm::rotate(glm::mat4(1.0f), 5.f, glm::vec3(0.f, 1.f, 0.f));
-		s = glm::scale(glm::mat4(1.0f), glm::vec3(1.f, 3.f, 1.f));
-		objMat = t*r*s;
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));						
-		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myPalette[2].r, myPalette[2].g, myPalette[1].b, myPalette[2].a);
-		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);	
-
-
-
-
-
-		glUseProgram(0);
-		glBindVertexArray(0);
-		glDisable(GL_PRIMITIVE_RESTART);
-
-
-		//glEnable(GL_PRIMITIVE_RESTART);
-		//glBindVertexArray(cubeVao);
-		//glUseProgram(cubeProgram);
-
-		//glm::mat4 t;
-		//glm::mat4 r;
-		//glm::mat4 s;
-
-		////Edificio 1
-		//t = glm::translate(glm::mat4(1.0f), glm::vec3(0, -2.f, 0.f));
-		//r = glm::rotate(glm::mat4(1.0f), 5.f, glm::vec3(0.f, 1.f, 0.f));
-		//s = glm::scale(glm::mat4(1.0f), glm::vec3(1.f, 4.f, 1.f));
-
-		//objMat = t*r*s;
-
-		//glUniform4f(glGetUniformLocation(cubeProgram, "color"), myPalette[1].r, myPalette[1].g, myPalette[1].b, myPalette[1].a);						//Color que le pasamos
-
-		//glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));						//Pasamos el valor de objMat al valor de objMat
-		//glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
-		//glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));				//Coloca la camera																														//glUniform4f(glGetUniformLocation(cubeProgram, "color"), 0.1f, 1.f, 1.f, 0.f);
-		//
-		//glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);	//Pintamos los elementos
-
-
-
-		////Edificio 2
-		//t = glm::translate(glm::mat4(1.0f), glm::vec3(2, 1.f, 0.f));
-		//r = glm::rotate(glm::mat4(1.0f), 5.f, glm::vec3(0.f, 1.f, 0.f));
-		//s = glm::scale(glm::mat4(1.0f), glm::vec3(1.f, 3.f, 1.f));
-		//objMat = t*r*s;
-		//glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));						//Pasamos el valor de objMat al valor de objMat
-		//glUniform4f(glGetUniformLocation(cubeProgram, "color"), myPalette[2].r, myPalette[2].g, myPalette[1].b, myPalette[2].a);
-		//glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);	//Pintamos los elementos
-
-
-		////Edificio 3
-
-		//glUseProgram(0);
-		//glBindVertexArray(0);
-		//glDisable(GL_PRIMITIVE_RESTART);
-	}
-
-
-	void updateColor(const glm::vec4 newColor) {
-
-		//myColor = newColor;
-	}
 }
