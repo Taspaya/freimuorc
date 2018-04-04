@@ -30,11 +30,17 @@ glm::vec4 myPalette[3] = {
 
 
 
-namespace Cube {
-	void setupCube();
-	void cleanupCube();
-	void updateCube(const glm::mat4& transform);
-	void drawCube();
+
+namespace MyFirstShader {
+
+	void myInitCode(void);
+	GLuint myShaderCompile(void);
+
+	void myCleanupCode(void);
+	void myRenderCode(double currentTime);
+
+	GLuint myRenderProgram;
+	GLuint myVAO;
 }
 
 namespace ImGui {
@@ -45,7 +51,7 @@ namespace ImGui {
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
 	const float zNear = 1.f;
-	const float zFar = 50.f;
+	const float zFar = 1000.f;
 
 	glm::mat4 _projection;
 	glm::mat4 _modelView;
@@ -113,11 +119,10 @@ void myGUI() {
 
 }
 
-
 void myInitCode(int width, int height) {
 
 	glViewport(0, 0, width, height);
-	glClearColor(myPalette[0].r, myPalette[0].g, myPalette[0].b, myPalette[0].a);
+	glClearColor(0, 0, 0, 1);
 	glClearDepth(1.f);
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
@@ -125,27 +130,27 @@ void myInitCode(int width, int height) {
 
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
 
-
-	Cube::setupCube();
+	MyFirstShader::myInitCode();
 }
 
 
 void myRenderCode(double currentTime) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
-	RV::_modelView = glm::lookAt(glm::vec3(0, 2, 10), glm::vec3(0,0,0), glm::vec3(0, 1, 1));
+
+	RV::_modelView = glm::mat4(1.f);
+	RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
+	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
+	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
 
 	RV::_MVP = RV::_projection * RV::_modelView;
-
-	//Cube::drawCube();
-
+	MyFirstShader::myRenderCode(currentTime);
 
 	ImGui::Render();
 }
 
 void myCleanupCode(void) {
-	Cube::cleanupCube();
+	MyFirstShader::myCleanupCode();
 }
 
 
@@ -181,157 +186,229 @@ void linkProgram(GLuint program) {
 }
 
 
-////////////////////////////////////////////////// CUBE
-namespace Cube {
-	GLuint cubeVao;
-	GLuint cubeVbo[3];
-	GLuint cubeShaders[2];
-	GLuint cubeProgram;
-
-	//Matriz de transformacion
-	glm::mat4 objMat = glm::mat4(1.f);
+/////////////////////////////////////MY DUPLICATION SHADER
+namespace MyFirstShader {
+	void myCleanupCode() {
+		glDeleteVertexArrays(1, &myVAO);
+		glDeleteProgram(myRenderProgram);
+	}
 
 
-	int next = 5;
-
-	extern const float halfW = 0.5f;
-	int numVerts = 24 + 6; // 4 vertex/face * 6 faces + 6 PRIMITIVE RESTART
-
-						   //   4---------7
-						   //  /|        /|
-						   // / |       / |
-						   //5---------6  |
-						   //|  0------|--3
-						   //| /       | /
-						   //|/        |/
-						   //1---------2
-	glm::vec3 verts[] = {
-		glm::vec3(-halfW, -halfW, -halfW),
-		glm::vec3(-halfW, -halfW,  halfW),
-		glm::vec3(halfW, -halfW,  halfW),
-		glm::vec3(halfW, -halfW, -halfW),
-		glm::vec3(-halfW,  halfW, -halfW),
-		glm::vec3(-halfW,  halfW,  halfW),
-		glm::vec3(halfW,  halfW,  halfW),
-		glm::vec3(halfW,  halfW, -halfW)
-	};
-	glm::vec3 norms[] = {
-		glm::vec3(0.f, -1.f,  0.f),
-		glm::vec3(0.f,  1.f,  0.f),
-		glm::vec3(-1.f,  0.f,  0.f),
-		glm::vec3(1.f,  0.f,  0.f),
-		glm::vec3(0.f,  0.f, -1.f),
-		glm::vec3(0.f,  0.f,  1.f)
-	};
-
-	glm::vec3 cubeVerts[] = {
-		verts[1], verts[0], verts[2], verts[3],
-		verts[5], verts[6], verts[4], verts[7],
-		verts[1], verts[5], verts[0], verts[4],
-		verts[2], verts[3], verts[6], verts[7],
-		verts[0], verts[4], verts[3], verts[7],
-		verts[1], verts[2], verts[5], verts[6]
-	};
-	glm::vec3 cubeNorms[] = {
-		norms[0], norms[0], norms[0], norms[0],
-		norms[1], norms[1], norms[1], norms[1],
-		norms[2], norms[2], norms[2], norms[2],
-		norms[3], norms[3], norms[3], norms[3],
-		norms[4], norms[4], norms[4], norms[4],
-		norms[5], norms[5], norms[5], norms[5]
-	};
-	GLubyte cubeIdx[] = {
-		0, 1, 2, 3, UCHAR_MAX,
-		4, 5, 6, 7, UCHAR_MAX,
-		8, 9, 10, 11, UCHAR_MAX,
-		12, 13, 14, 15, UCHAR_MAX,
-		16, 17, 18, 19, UCHAR_MAX,
-		20, 21, 22, 23, UCHAR_MAX
-	};
+	GLuint myShaderCompile(void) {
 
 
 
+		//static const GLchar * vertex_shader_source[] = //vec4( 0.25, -0.25, 0.5, 1.0) ... // = { 0.25, -0.25, 0.5, 1.0}
+		//{
+		//	"#version 330										\n\
+				//	\n\
+		//	uniform vec4 inOne;\n\
+		//	void main() {\n\
+		//	const vec4 vertices[3] = vec4[3](vec4( inOne.x,  inOne.y,  inOne.z, 1.0),\n\
+		//								     vec4(0.25, 0.25, 0.5, 1.0),\n\
+		//									 vec4( -0.25,  -0.25, 0.5, 1.0));\n\
+		//	gl_Position = vertices[gl_VertexID];\n\
+		//	}"
+//};
 
-	const char* cube_vertShader =
-		"#version 330\n\
-	in vec3 in_Position;\n\
-	in vec3 in_Normal;\n\
-	out vec4 vert_Normal;\n\
-	uniform mat4 objMat;\n\
-	uniform mat4 mv_Mat;\n\
-	uniform mat4 mvpMat;\n\
-	void main() {\n\
-		gl_Position = mvpMat * objMat * vec4(in_Position, 1.0);\n\
-		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
-	}";
+		static const GLchar * vertex_shader_source[] =
+		{
+			"#version 330										\n\
+		\n\
+		void main() {\n\
+		const vec4 vertices[3] = vec4[3](vec4( 0.25, -0.25, 0.5, 1.0),\n\
+									   vec4(0.25, 0.25, 0.5, 1.0),\n\
+										vec4( -0.25,  -0.25, 0.5, 1.0));\n\
+		gl_Position = vertices[gl_VertexID];\n\
+		}" };
+
+		static const GLchar * geom_shader_source[] = {
+			"#version 330 \n\
+			uniform mat4 rotation;\n\
+			uniform vec4 inOne;\n\
+			uniform vec4 inTwo;\n\
+			layout(triangles) in;\n\
+			layout(triangle_strip, max_vertices = 24) out;\n\
+			void main()\n\
+			{\n\
+				const vec4 vertices[4] = vec4[4](vec4(0.25, -0.25, 0.25, 1.0),\n\
+										vec4(0.25, 0.25, 0.25, 1.0),\n\
+										vec4(-0.25, -0.25, 0.25, 1.0),\n\
+										vec4(-0.25, 0.25, 0.25, 1.0));\n\
+				\n\
+				//CARA 1\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = rotation*vertices[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA 2\n\
+				const vec4 vertices2[4]= vec4[4](vec4(0.25, 0.25, 0.25, 1.0),\n\
+										vec4(0.25, 0.25, -0.25, 1.0),\n\
+										vec4(-0.25, 0.25, 0.25, 1.0),\n\
+										vec4(-0.25, 0.25, -0.25, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = rotation*vertices2[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 3\n\
+				const vec4 vertices3[4]= vec4[4](vec4(-0.25, -0.25, 0.25, 1.0),\n\
+										vec4(-0.25, 0.25, 0.25, 1.0),\n\
+										vec4(-0.25, -0.25, -0.25, 1.0),\n\
+										vec4(-0.25, 0.25, -0.25, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = rotation*vertices3[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 2;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 4\n\
+				const vec4 vertices4[4]= vec4[4](vec4(-0.25, -0.25, -0.25, 1.0),\n\
+										vec4(-0.25, 0.25, -0.25, 1.0),\n\
+										vec4(0.25, -0.25, -0.25, 1.0),\n\
+										vec4(0.25, 0.25, -0.25, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = rotation*vertices4[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 3;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 5\n\
+				const vec4 vertices5[4]= vec4[4](vec4(-0.25, -0.25, 0.25, 1.0),\n\
+										vec4(-0.25, -0.25, -0.25, 1.0),\n\
+										vec4(0.25, -0.25, 0.25, 1.0),\n\
+										vec4(0.25, -0.25, -0.25, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = rotation*vertices5[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 4;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 6\n\
+				const vec4 vertices6[4]= vec4[4](vec4(0.25, -0.25, -0.25, 1.0),\n\
+										vec4(0.25, 0.25, -0.25, 1.0),\n\
+										vec4(0.25, -0.25, 0.25, 1.0),\n\
+										vec4(0.25, 0.25, 0.25, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = rotation*vertices6[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 5;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+			}"
+		};
 
 
-	const char* cube_fragShader =
-		"#version 330\n\
-			in vec4 vert_Normal;\n\
-			out vec4 out_Color;\n\
-			uniform mat4 mv_Mat;\n\
-			uniform vec4 color;\n\
+
+
+
+		static const GLchar * fragment_shader_source[] =
+		{
+			"#version 330\n\
+			\n\
+			out vec4 color;\n\
+			\n\
 			void main() {\n\
-		out_Color = vec4(color.xyz * dot(vert_Normal, mv_Mat*vec4(0.0, 1.0, 0.2, 0.0)) + color.xyz * 0.3, 1.0 );\n\
-}";
-	void setupCube() {
-		glGenVertexArrays(1, &cubeVao);
-		glBindVertexArray(cubeVao);
-		glGenBuffers(3, cubeVbo);
+			const vec4 colors[6] = vec4[6](vec4( 0, 1, 0, 1.0),\n\
+											vec4(0, 0.9, 0, 1.0),\n\
+											vec4( 0, 0.8, 0, 1.0),\n\
+											vec4(0, 0.87, 0, 1.0),\n\
+											vec4( 0, 0.95, 0, 1.0),\n\
+											vec4( 0, 0.85, 0, 1.0));\n\
+			color = colors[gl_PrimitiveID ];\n\
+			}" };
 
-		glBindBuffer(GL_ARRAY_BUFFER, cubeVbo[0]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVerts), cubeVerts, GL_STATIC_DRAW);
-		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
 
-		glBindBuffer(GL_ARRAY_BUFFER, cubeVbo[1]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(cubeNorms), cubeNorms, GL_STATIC_DRAW);
-		glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(1);
 
-		glPrimitiveRestartIndex(UCHAR_MAX);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cubeVbo[2]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIdx), cubeIdx, GL_STATIC_DRAW);
 
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		GLuint vertex_shader;
+		GLuint fragment_shader;
+		GLuint geom_shader;
+		GLuint program;
 
-		cubeShaders[0] = compileShader(cube_vertShader, GL_VERTEX_SHADER, "cubeVert");
-		cubeShaders[1] = compileShader(cube_fragShader, GL_FRAGMENT_SHADER, "cubeFrag");
+		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
+		glCompileShader(vertex_shader);
 
-		cubeProgram = glCreateProgram();
-		glAttachShader(cubeProgram, cubeShaders[0]);
-		glAttachShader(cubeProgram, cubeShaders[1]);
-		glBindAttribLocation(cubeProgram, 0, "in_Position");
-		glBindAttribLocation(cubeProgram, 1, "in_Normal");
-		linkProgram(cubeProgram);
+		geom_shader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geom_shader, 1, geom_shader_source, NULL);
+		glCompileShader(geom_shader);
+
+		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
+		glCompileShader(fragment_shader);
+
+		program = glCreateProgram();
+		glAttachShader(program, vertex_shader);
+		glAttachShader(program, fragment_shader);
+		glAttachShader(program, geom_shader);
+		glLinkProgram(program);
+
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+
+		return program;
 	}
-	void cleanupCube() {
-		glDeleteBuffers(3, cubeVbo);
-		glDeleteVertexArrays(1, &cubeVao);
 
-		glDeleteProgram(cubeProgram);
-		glDeleteShader(cubeShaders[0]);
-		glDeleteShader(cubeShaders[1]);
-	}
-	void updateCube(const glm::mat4& transform) {
-		objMat = transform;
-	}
-	void drawCube() {
-		glEnable(GL_PRIMITIVE_RESTART);
-		glBindVertexArray(cubeVao);
-		glUseProgram(cubeProgram);
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
-		glUniform4f(glGetUniformLocation(cubeProgram, "color"), 0.1f, 1.f, 1.f, 0.f);
-		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 
-		glUseProgram(0);
-		glBindVertexArray(0);
-		glDisable(GL_PRIMITIVE_RESTART);
+
+	glm::vec4 GetRandomPoint() {
+		return glm::vec4(rand() % 5, rand() % 5, rand() % 5, 1/*0.25, -0.25, 0.5, 1.0*/);
 	}
+
+
+	void  myInitCode(void) {
+
+		//glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "inOne"), 1, GL_FALSE, glm::value_ptr(tmp));
+		myRenderProgram = myShaderCompile();
+		//glCreateVertexArrays(1, &myVAO); //use this one on class pc
+		glGenVertexArrays(1, &myVAO);		//Use this one on home pc
+		glBindVertexArray(myVAO);
+
+		glUseProgram(myRenderProgram);
+
+
+		glm::vec4 tmp = glm::vec4(0,0,0, 1.0);//GetRandomPoint();
+		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
+		glUniform4f(loc, tmp.x, tmp.y, tmp.z, 1);
+
+		//glm::vec4 tmp2 = glm::vec4(1.25, -2.25, 0.5, 1.0);//GetRandomPoint();
+		//GLint loc2 = glGetUniformLocation(myRenderProgram, "inTwo");
+		//glUniform4f(loc2, tmp2.x, tmp2.y, tmp2.z, 1);
+
+	}
+
+
+
+	glm::mat4 myMVP;
+	void myRenderCode(double currentTime) {
+
+		glUseProgram(myRenderProgram);
+		glm::mat4 rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
+			0.f, 1.f, 0.f, 0.f,
+			sin(currentTime), 0.f, cos(currentTime), 0.f,
+			0.f, 0.f, 0.f, 1.f };
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
+
+
+
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	}
+
+
 
 }
+
