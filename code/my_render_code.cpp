@@ -5,18 +5,18 @@
 
 #include <cstdio>
 #include <cassert>
-
+#include <iostream>
 #include "GL_framework.h"
 
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_sdl_gl3.h>
 
 #define MAX_CUBES 4
-#define EXERCISE_NUM 2
+#define EXERCISE_NUM 3
 glm::vec4 randomPositions[MAX_CUBES] = {glm::vec4(0,0,0,1),glm::vec4(2,2,0,1), glm::vec4(4,0,0,1), glm::vec4(2,-2,0,1) };
 
 int ex = 0;
-bool update[EXERCISE_NUM] = { true };
+bool update[EXERCISE_NUM];
 
 namespace MyFirstShader {
 
@@ -24,7 +24,7 @@ namespace MyFirstShader {
 	GLuint myShaderCompile(void);
 
 	void myCleanupCode(void);
-	void myRenderCode(double currentTime, glm::vec4 pos);
+	void myRenderCode(double currentTime, glm::vec4 pos, bool rotate);
 
 	GLuint myRenderProgram;
 	GLuint myVAO;
@@ -102,6 +102,8 @@ void myGUI() {
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 		ImGui::RadioButton("Exercise 1", &ex, 0);
 		ImGui::RadioButton("Exercise 2", &ex, 1);
+		ImGui::RadioButton("Exercise 3", &ex, 2);
+
 	}
 	// .........................
 
@@ -127,6 +129,11 @@ void myInitCode(int width, int height) {
 		randomPositions[i] = GetRandomPoint();
 	}*/
 
+	for (int i = 0; i < EXERCISE_NUM; i++) {
+
+		update[i] = true;
+	}
+
 	//int aux = 200;
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar); 
 	//RV::_projection = glm::ortho((float)(-width / aux), (float)(width / aux), (float)(-height / aux), (float)(height / aux), 0.01f, 100.f);
@@ -146,28 +153,63 @@ void myRenderCode(double currentTime) {
 
 	RV::_MVP = RV::_projection * RV::_modelView;
 
-	switch (ex)
-	{
 
+	//SWITCH STATEMENT: to check exercises
+	switch (ex) {
+
+	//EXERCISE 1
 	case 0:
+		//Reset of exercises
 		if (update[0]) {
 			for (int i = 0; i < MAX_CUBES; i++) {
 				randomPositions[i] = GetRandomPoint();
 			}
+
+			for (int i = 0; i < EXERCISE_NUM; i++) {
+				update[i] = true;
+			}
 			update[0] = false;
-			update[1] = true;
+		}
+		for (int i = 0; i < MAX_CUBES; i++) {
+			MyFirstShader::myRenderCode(currentTime, randomPositions[i], false);
 		}
 		break;
 
+
+	//EXERCISE 2
 	case 1:
+		//Reset of exercises
 		if (update[1]){
 				randomPositions[0] = glm::vec4(0, 0, 0, 1);
 				randomPositions[1] = glm::vec4(2, 2, 0, 1);
 				randomPositions[2] = glm::vec4(4, 0, 0, 1);
 				randomPositions[3] = glm::vec4(2, -2, 0, 1);
-				update[0] = true;
+				for (int i = 0; i < EXERCISE_NUM; i++) {
+					update[i] = true;
+				}
 				update[1] = false;
 		}
+		for (int i = 0; i < MAX_CUBES; i++) {
+			MyFirstShader::myRenderCode(currentTime, randomPositions[i], false);
+		}
+		break;
+
+	//EXERCISE 3
+	case 2: 
+		//Reset of exercises
+		if (update[2]) {
+			for (int i = 0; i < MAX_CUBES; i++) {
+				randomPositions[i] = GetRandomPoint();
+			}
+			for (int i = 0; i < EXERCISE_NUM; i++) {
+				update[i] = true;
+			}
+			update[2] = false;
+		}
+		for (int i = 0; i < MAX_CUBES; i++) {
+			MyFirstShader::myRenderCode(currentTime, randomPositions[i], true);
+		}
+		
 		break;
 
 
@@ -176,9 +218,6 @@ void myRenderCode(double currentTime) {
 		break;
 	}
 
-	for (int i = 0; i < MAX_CUBES; i++) {
-		MyFirstShader::myRenderCode(currentTime, randomPositions[i]);
-	}
 
 	
 
@@ -227,7 +266,19 @@ void linkProgram(GLuint program) {
 }
 
 
-/////////////////////////////////////MY DUPLICATION SHADER
+/*
+*
+*
+*
+*
+*		SHADER DE LOS COJONES
+*
+*
+*
+*
+*
+*/
+
 namespace MyFirstShader {
 	void myCleanupCode() {
 		glDeleteVertexArrays(1, &myVAO);
@@ -252,6 +303,7 @@ namespace MyFirstShader {
 		static const GLchar * geom_shader_source[] = {
 			"#version 330 \n\
 			uniform mat4 rotation;\n\
+			uniform mat4 selfRot;\n\
 			layout(triangles) in;\n\
 			layout(triangle_strip, max_vertices = 120) out;\n\
 			void main()\n\
@@ -292,7 +344,7 @@ namespace MyFirstShader {
 				//CARA 1\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*(vertices[i]+gl_in[0].gl_Position);\n\
+					gl_Position = rotation*(selfRot*vertices[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 0;\n\
 					EmitVertex();\n\
 				}\n\
@@ -301,7 +353,7 @@ namespace MyFirstShader {
 				//CARA 2\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*(vertices2[i]+gl_in[0].gl_Position);\n\
+					gl_Position = rotation*(selfRot*vertices2[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 1;\n\
 					EmitVertex();\n\
 				}\n\
@@ -309,7 +361,7 @@ namespace MyFirstShader {
 				//CARA 3\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*(vertices3[i]+gl_in[0].gl_Position);\n\
+					gl_Position = rotation*(selfRot*vertices3[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
@@ -317,7 +369,7 @@ namespace MyFirstShader {
 				//CARA 4\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*(vertices4[i]+gl_in[0].gl_Position);\n\
+					gl_Position = rotation*(selfRot*vertices4[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 3;\n\
 					EmitVertex();\n\
 				}\n\
@@ -325,7 +377,7 @@ namespace MyFirstShader {
 				//CARA 5\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*(vertices5[i]+gl_in[0].gl_Position);\n\
+					gl_Position = rotation*(selfRot*vertices5[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 4;\n\
 					EmitVertex();\n\
 				}\n\
@@ -333,7 +385,7 @@ namespace MyFirstShader {
 				//CARA 6\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*(vertices6[i]+gl_in[0].gl_Position);\n\
+					gl_Position = rotation*(selfRot*vertices6[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
@@ -406,20 +458,27 @@ namespace MyFirstShader {
 
 
 	glm::mat4 myMVP;
-	void myRenderCode(double currentTime, glm::vec4 pos) {
+	void myRenderCode(double currentTime, glm::vec4 pos, bool rotate) {
 
 		glUseProgram(myRenderProgram);
-		glm::mat4 rotation = glm::mat4(1);
-			/*{ cos(currentTime), 0.f, -sin(currentTime), 0.f,
-			0.f, 1.f, 0.f, 0.f,
-			sin(currentTime), 0.f, cos(currentTime), 0.f,
-			0.f, 0.f, 0.f, 1.f };*/
+		glm::mat4 rotation; 
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP/*rotation*/));
- 
+	
+
 		glm::vec4 tmp = GetRandomPoint();
 		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
 		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
 
+		if (rotate) {
+			rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
+						0.f, 1.f, 0.f, 0.f,
+						sin(currentTime), 0.f, cos(currentTime), 0.f,
+						0.f, 0.f, 0.f, 1.f };
+		}
+		else {
+			rotation = glm::mat4(1);
+		}
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(rotation));
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
