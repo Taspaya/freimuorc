@@ -11,8 +11,17 @@
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_sdl_gl3.h>
 
+#define NUM_ROWS 14
+#define NUM_COLS 26
+
+#define OFFSET 1.1
+
+
+int rotAxisMatrix[NUM_COLS][NUM_ROWS];
+int speed[NUM_COLS];
+
 #define MAX_CUBES 4
-#define EXERCISE_NUM 4
+#define EXERCISE_NUM 5
 glm::vec4 randomPositions[MAX_CUBES] = {glm::vec4(0,0,0,1),glm::vec4(2,2,0,1), glm::vec4(4,0,0,1), glm::vec4(2,-2,0,1) };
 int rotAxis[MAX_CUBES];
 int ex = 0;
@@ -24,7 +33,9 @@ namespace MyFirstShader {
 	GLuint myShaderCompile(void);
 
 	void myCleanupCode(void);
-	void myRenderCode(double currentTime, glm::vec4 pos, bool rotate, int axis);
+	void myRenderCode(double currentTime, glm::vec4 pos);
+	void myRenderCode(double currentTime, glm::vec4 pos, int axis);
+	void myRenderCodeMatrix(double currentTime, glm::vec4 pos, int axis, int speed);
 
 	GLuint myRenderProgram;
 	GLuint myVAO;
@@ -104,6 +115,8 @@ void myGUI() {
 		ImGui::RadioButton("Exercise 2", &ex, 1);
 		ImGui::RadioButton("Exercise 3", &ex, 2);
 		ImGui::RadioButton("Exercise 4", &ex, 3);
+		ImGui::RadioButton("Exercise 5", &ex, 4);
+
 
 	}
 	// .........................
@@ -159,6 +172,11 @@ void myRenderCode(double currentTime) {
 	switch (ex) {
 
 	//EXERCISE 1
+	/*Generate a geometry shader that, given a set of random points in a 3D volume, converts each point into a cube, 
+	with the segments defining the cube aligned with the axis. Make sure the random points are stored as seeds, and 
+	that each seed is placed at the center of the cube. The combination of the side and the cube is called a 
+	body-centered cube.*/
+
 	case 0:
 		//Reset of exercises
 		if (update[0]) {
@@ -172,12 +190,16 @@ void myRenderCode(double currentTime) {
 			update[0] = false;
 		}
 		for (int i = 0; i < MAX_CUBES; i++) {
-			MyFirstShader::myRenderCode(currentTime, randomPositions[i], false, 1);
+			MyFirstShader::myRenderCode(currentTime, randomPositions[i]);
 		}
 		break;
 
 
 	//EXERCISE 2
+	/*Arrange the seeds in a body centered cubic lattice.
+	Make a shader that, for each cube generated, generate a truncated octocahedron, as defined by the voronoi cell 
+	of the body-centered cube. A Voronoi cell is the 3D equivalent of a Voronoi space, as 
+	defined here: http://mathworld.wolfram.com/VoronoiDiagram.html*/
 	case 1:
 		//Reset of exercises
 		if (update[1]){
@@ -191,11 +213,14 @@ void myRenderCode(double currentTime) {
 				update[1] = false;
 		}
 		for (int i = 0; i < MAX_CUBES; i++) {
-			MyFirstShader::myRenderCode(currentTime, randomPositions[i], false, 1);				//Replace shader: use octahedron
+			MyFirstShader::myRenderCode(currentTime, randomPositions[i]);				//Replace shader: use octahedron
 		}
 		break;
 
+
 	//EXERCISE 3
+	/*Pick the result of task 1, and organize your points in such a way that  the each cube rotates in a different 
+	direction as it falls. Visualize it with an orthonormal perspective.*/
 	case 2: 
 		//Reset of exercises
 		if (update[2]) {
@@ -209,13 +234,14 @@ void myRenderCode(double currentTime) {
 			update[2] = false;
 		}
 		for (int i = 0; i < MAX_CUBES; i++) {
-			MyFirstShader::myRenderCode(currentTime, randomPositions[i], true, rotAxis[i]);
+			MyFirstShader::myRenderCode(currentTime, randomPositions[i], rotAxis[i]);
 		}
 		
 		break;
 
 
 	//EXERCISE 4
+	/*Reproduce the effect of task 3, but replacing the cubes with the truncated octocahedrons*/
 	case 3:
 		//Reset of exercises
 		if (update[3]) {
@@ -229,11 +255,36 @@ void myRenderCode(double currentTime) {
 			update[3] = false;
 		}
 		for (int i = 0; i < MAX_CUBES; i++) {
-			MyFirstShader::myRenderCode(currentTime, randomPositions[i], true, rotAxis[i]);			//Replace shader: use octahedron
+			MyFirstShader::myRenderCode(currentTime, randomPositions[i], rotAxis[i]);			//Replace shader: use octahedron
 		}
 
 		break;
 
+
+	//EXERCISE 5
+	/* Make the cubes/octocahedrons of task 3 and/or 4 replace the random characters in the matrix effect, preserving 
+	the same changes in color than the letters show.*/
+	case 4:
+		//Reset of exercises
+		if (update[4]) {
+			for (int i = 0; i < NUM_COLS; i++) {
+				speed[i] = rand() % 4 + 1;
+				for (int j = 0; j < NUM_ROWS; j++) {
+					rotAxisMatrix[i][j] = rand() % 3;
+				}
+			}
+			for (int i = 0; i < EXERCISE_NUM; i++) {
+				update[i] = true;
+			}
+			update[4] = false;
+		}
+		for (int i = 0; i < NUM_COLS; i++) {
+			for (int j = 0; j < NUM_ROWS; j++) {
+				MyFirstShader::myRenderCodeMatrix(currentTime, glm::vec4(i*2 *2*OFFSET, j*2 * OFFSET+speed[i], 0, 1.f), rotAxisMatrix[i][j], speed[i]);
+			}
+		}
+
+		break;
 
 	default:
 		break;
@@ -476,7 +527,27 @@ namespace MyFirstShader {
 
 
 	glm::mat4 myMVP;
-	void myRenderCode(double currentTime, glm::vec4 pos, bool rotate, int axis) {
+
+	//CODE THAT RENDERS STATTIONARY OBJECTS
+	void myRenderCode(double currentTime, glm::vec4 pos) {
+	
+		glUseProgram(myRenderProgram);
+		glm::mat4 rotation = glm::mat4(1);
+
+		glm::vec4 tmp = GetRandomPoint();
+		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
+		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
+
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(rotation));
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
+	//CODE THAT RENDERS ROTATIONAL AND TRANSLATIONAL OBJECTS
+	void myRenderCode(double currentTime, glm::vec4 pos, int axis) {
 
 		glUseProgram(myRenderProgram);
 		glm::mat4 rotation; 
@@ -486,41 +557,39 @@ namespace MyFirstShader {
 		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
 		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
 
-		if (rotate) {
-			switch (axis) {
+		
+		switch (axis) {
 
-			//Rotation with X axis
-			case 0:
-				rotation = { 1.0f, 0.f, 0.f, 0.f,
-							 0.f, cos(currentTime), -sin(currentTime), 0.f,
-							 0.f, sin(currentTime), cos(currentTime), 0.f,
-							 0.f, 0.f, 0.f, 1.f };
-				break;
-			
-			//Rotation with Y axis
-			case 1:
-				rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
-					0.f, 1.f, 0.f, 0.f,
-					sin(currentTime), 0.f, cos(currentTime), 0.f,
-					0.f, 0.f, 0.f, 1.f };
-				break;
-			
-			//Rotation with Z axis
-			case 2:
-				rotation = { cos(currentTime), -sin(currentTime), 0.f, 0.f,
-					         sin(currentTime), cos(currentTime), 0.f, 0.f,
-							0.f, 0.f, 1.f, 0.f,
+		//Rotation with X axis
+		case 0:
+			rotation = { 1.0f, 0.f, 0.f, 0.f,
+							0.f, cos(currentTime), -sin(currentTime), 0.f,
+							0.f, sin(currentTime), cos(currentTime), 0.f,
 							0.f, 0.f, 0.f, 1.f };
-				break;
-			}
+			break;
+			
+		//Rotation with Y axis
+		case 1:
+			rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
+				0.f, 1.f, 0.f, 0.f,
+				sin(currentTime), 0.f, cos(currentTime), 0.f,
+				0.f, 0.f, 0.f, 1.f };
+			break;
+			
+		//Rotation with Z axis
+		case 2:
+			rotation = { cos(currentTime), -sin(currentTime), 0.f, 0.f,
+					        sin(currentTime), cos(currentTime), 0.f, 0.f,
+						0.f, 0.f, 1.f, 0.f,
+						0.f, 0.f, 0.f, 1.f };
+			break;
+		}
 			
 
-			//Translate the cubes
-			translation = glm::translate(glm::mat4(1), glm::vec3(0.f, fmod(-currentTime, 10.f)+5.f, 0.f));
-		}
-		else {
-			rotation = glm::mat4(1);
-		}
+		//Translate the cubes
+		translation = glm::translate(glm::mat4(1), glm::vec3(0.f, fmod(-currentTime, 10.f)+5.f, 0.f));
+		
+		
 
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP*translation));
 
@@ -530,6 +599,54 @@ namespace MyFirstShader {
 	}
 
 
+
+	//CODE THAT RENDERS THE MATRIX
+	void myRenderCodeMatrix(double currentTime, glm::vec4 pos, int axis, int speed) {
+		glUseProgram(myRenderProgram);
+
+
+		glm::mat4 rotation;
+		glm::mat4 translation;
+
+		glm::vec4 tmp = GetRandomPoint();
+		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
+		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
+
+		switch (axis) {
+
+			//Rotation with X axis
+		case 0:
+			rotation = { 1.0f, 0.f, 0.f, 0.f,
+				0.f, cos(currentTime), -sin(currentTime), 0.f,
+				0.f, sin(currentTime), cos(currentTime), 0.f,
+				0.f, 0.f, 0.f, 1.f };
+			break;
+
+			//Rotation with Y axis
+		case 1:
+			rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
+				0.f, 1.f, 0.f, 0.f,
+				sin(currentTime), 0.f, cos(currentTime), 0.f,
+				0.f, 0.f, 0.f, 1.f };
+			break;
+
+			//Rotation with Z axis
+		case 2:
+			rotation = { cos(currentTime), -sin(currentTime), 0.f, 0.f,
+				sin(currentTime), cos(currentTime), 0.f, 0.f,
+				0.f, 0.f, 1.f, 0.f,
+				0.f, 0.f, 0.f, 1.f };
+			break;
+		}
+
+		translation = glm::translate(glm::mat4(1), glm::vec3(0.f, (fmod(-currentTime, 10.f) + 5.f)*speed, 0.f));
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP*translation));
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(rotation));
+
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
 
 }
 
