@@ -19,6 +19,7 @@ extern void GLResize(int width, int height);
 //extern void GLcleanup();
 //extern void GLrender(double currentTime);
 
+int display_w = 700, display_h = 700;
 
 extern void myRenderCode(double currentTime);
 extern void myCleanupCode(void);
@@ -64,7 +65,7 @@ int main(int argc, char** argv) {
 	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
 	mainwindow = SDL_CreateWindow("GL_framework", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-		800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+		display_w, display_h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 		if (!mainwindow) { /* Die if creation failed */
 			SDL_Log("Couldn't create SDL window: %s", SDL_GetError());
 			SDL_Quit();
@@ -84,8 +85,8 @@ int main(int argc, char** argv) {
 	// Disable V-Sync
 	SDL_GL_SetSwapInterval(0);
 
-	int display_w, display_h;
-	SDL_GL_GetDrawableSize(mainwindow, &display_w, &display_h);
+	
+	//SDL_GL_GetDrawableSize(mainwindow, &display_w, &display_h);
 	// Init scene
 	//GLinit(display_w, display_h);
 	//PhysicsInit();
@@ -104,11 +105,11 @@ int main(int argc, char** argv) {
 		while (SDL_PollEvent(&eve)) {
 			ImGui_ImplSdlGL3_ProcessEvent(&eve);
 			switch (eve.type) {
-			case SDL_WINDOWEVENT:
-				if (eve.window.event == SDL_WINDOWEVENT_RESIZED) {
-					GLResize(eve.window.data1, eve.window.data2);
-				}
-				break;
+			//case SDL_WINDOWEVENT:
+			//	/*if (eve.window.event == SDL_WINDOWEVENT_RESIZED) {
+			//		GLResize(eve.window.data1, eve.window.data2);
+			//	}*/
+			//	break;
 			case SDL_QUIT:
 				quit_app = true;
 				break;
