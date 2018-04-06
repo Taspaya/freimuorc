@@ -462,6 +462,249 @@ namespace MyFirstShader {
 			}"
 		};
 
+#pragma region "Octahedron"
+		static const GLchar * octa_geom_shader_source[] = {
+			"#version 330 \n\
+			uniform mat4 rotation;\n\
+			uniform vec4 inOne;\n\
+			uniform vec4 inTwo;\n\
+			layout(triangles) in;\n\
+			layout(triangle_strip, max_vertices = 256) out;\n\
+			void main()\n\
+			{\n\
+				//HEXAGON\n\
+				//CARA A\n\
+				const vec4 verticesA[6] = vec4[6](\n\
+												vec4(0, 2*sqrt(2), sqrt(2), 1.0),/*E*/ \n\
+												vec4(0, sqrt(2), 2*sqrt(2), 1.0),/*A*/ \n\
+												vec4(sqrt(2), 2*sqrt(2), 0, 1.0),/*M*/ \n\
+												vec4(sqrt(2), 0, 2*sqrt(2), 1.0),/*V*/ \n\
+												vec4(2*sqrt(2), sqrt(2), 0, 1.0),/*N*/ \n\
+												vec4(2*sqrt(2), 0, sqrt(2), 1.0));/*R*/ \n\
+				\n\
+				for (int i = 0; i<6; i++)\n\
+				{\n\
+					gl_Position = rotation*verticesA[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA B\n\
+				const vec4 verticesB[6] = vec4[6](\n\
+												vec4(0, sqrt(2), 2*sqrt(2), 1.0),/*A*/ \n\
+												vec4(0, 2*sqrt(2), sqrt(2), 1.0),/*E*/ \n\
+												vec4(-sqrt(2), 0, 2*sqrt(2), 1.0),/*W*/ \n\
+												vec4(-sqrt(2), 2*sqrt(2), 0, 1.0),/*J*/ \n\
+												vec4(-2*sqrt(2), 0, sqrt(2), 1.0),/*S*/ \n\
+												vec4(-2*sqrt(2), sqrt(2), 0, 1.0));/*O*/ \n\
+				\n\
+				for (int i = 0; i<6; i++)\n\
+				{\n\
+					gl_Position = rotation*verticesB[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA C\n\
+				const vec4 verticesC[6] = vec4[6](\n\
+												vec4(sqrt(2), 0, 2*sqrt(2), 1.0),/*V*/ \n\
+												vec4(0, -sqrt(2), 2*sqrt(2), 1.0),/*B*/ \n\
+												vec4(2*sqrt(2), 0, sqrt(2), 1.0),/*R*/ \n\
+												vec4(0, -2*sqrt(2), sqrt(2), 1.0),/*F*/ \n\
+												vec4(2*sqrt(2), -sqrt(2), 0, 1.0),/*P*/ \n\
+												vec4(sqrt(2), -2 * sqrt(2), 0, 1.0));/*K*/ \n\
+			\n\
+			for (int i = 0; i<6; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesC[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 2;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA D\n\
+				const vec4 verticesD[6] = vec4[6](\n\
+												vec4(0, -2*sqrt(2), sqrt(2), 1.0),/*F*/ \n\
+												vec4(0, -sqrt(2), 2*sqrt(2), 1.0),/*B*/ \n\
+												vec4(-sqrt(2), -2*sqrt(2), 0, 1.0),/*L*/ \n\
+												vec4(-sqrt(2), 0, 2*sqrt(2), 1.0),/*W*/ \n\
+												vec4(-2*sqrt(2), -sqrt(2), 0, 1.0),/*Q*/ \n\
+												vec4(-2*sqrt(2), 0, sqrt(2), 1.0));/*S*/ \n\
+			\n\
+			for (int i = 0; i<6; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesD[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 3;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA E\n\
+				const vec4 verticesE[6] = vec4[6](\n\
+												vec4(sqrt(2), 2*sqrt(2), 0, 1.0),/*M*/ \n\
+												vec4(2*sqrt(2), sqrt(2), 0, 1.0),/*N*/ \n\
+												vec4(0, 2*sqrt(2), -sqrt(2), 1.0),/*G*/ \n\
+												vec4(2*sqrt(2), 0, -sqrt(2), 1.0),/*T*/ \n\
+												vec4(0, sqrt(2), -2*sqrt(2), 1.0),/*C*/ \n\
+												vec4(sqrt(2), 0, -2*sqrt(2), 1.0));/*Z*/ \n\
+			\n\
+			for (int i = 0; i<6; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesE[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 4;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA F\n\
+				const vec4 verticesF[6] = vec4[6](\n\
+												vec4(2*sqrt(2), -sqrt(2), 0, 1.0),/*P*/ \n\
+												vec4(sqrt(2), -2 * sqrt(2), 0, 1.0),/*K*/ \n\
+												vec4(2*sqrt(2), 0, -sqrt(2), 1.0),/*T*/ \n\
+												vec4(0, -2*sqrt(2), -sqrt(2), 1.0),/*H*/ \n\
+												vec4(sqrt(2), 0, -2*sqrt(2), 1.0),/*Z*/ \n\
+												vec4(0, -sqrt(2), -2*sqrt(2), 1.0));/*D*/ \n\
+			\n\
+			for (int i = 0; i<6; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesF[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 5;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA G\n\
+				const vec4 verticesG[6] = vec4[6](\n\
+												vec4(-sqrt(2), -2*sqrt(2), 0, 1.0),/*L*/ \n\
+												vec4(-2*sqrt(2), -sqrt(2), 0, 1.0),/*Q*/ \n\
+												vec4(0, -2*sqrt(2), -sqrt(2), 1.0),/*H*/ \n\
+												vec4(-2*sqrt(2), 0, -sqrt(2), 1.0),/*U*/ \n\
+												vec4(0, -sqrt(2), -2*sqrt(2), 1.0),/*D*/ \n\
+												vec4(-sqrt(2), 0, -2*sqrt(2), 1.0));/*AA*/ \n\
+			\n\
+			for (int i = 0; i<6; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesG[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 5;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA H\n\
+				const vec4 verticesH[6] = vec4[6](\n\
+												vec4(-2*sqrt(2), 0, -sqrt(2), 1.0),/*U*/ \n\
+												vec4(-2*sqrt(2), sqrt(2), 0, 1.0),/*O*/ \n\
+												vec4(-sqrt(2), 0, -2*sqrt(2), 1.0),/*AA*/ \n\
+												vec4(-sqrt(2), 2*sqrt(2), 0, 1.0),/*J*/ \n\
+												vec4(0, sqrt(2), -2*sqrt(2), 1.0),/*C*/ \n\
+												vec4(0, 2*sqrt(2), -sqrt(2), 1.0));/*G*/ \n\
+			\n\
+			for (int i = 0; i<6; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesH[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 5;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				\n\
+				\n\
+				//CARA CA\n\
+				const vec4 verticesCA[4] = vec4[4](\n\
+												vec4(0, sqrt(2), 2*sqrt(2), 1.0),/*A*/ \n\
+												vec4(-sqrt(2), 0, 2*sqrt(2), 1.0),/*W*/ \n\
+												vec4(sqrt(2), 0, 2*sqrt(2), 1.0),/*V*/ \n\
+												vec4(0, -sqrt(2), 2*sqrt(2), 1.0));/*B*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesCA[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 6;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA CB\n\
+				const vec4 verticesCB[4] = vec4[4](\n\
+												vec4(-2*sqrt(2), 0, sqrt(2), 1.0),/*S*/ \n\
+												vec4(-2*sqrt(2), sqrt(2), 0, 1.0),/*O*/ \n\
+												vec4(-2 * sqrt(2), -sqrt(2), 0, 1.0),/*Q*/ \n\
+												vec4(-2*sqrt(2), 0, -sqrt(2), 1.0));/*U*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesCB[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 7;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA CC\n\
+				const vec4 verticesCC[4] = vec4[4](\n\
+												vec4(0, 2*sqrt(2), sqrt(2), 1.0),/*E*/ \n\
+												vec4(sqrt(2), 2*sqrt(2), 0, 1.0),/*M*/ \n\
+												vec4(-sqrt(2), 2*sqrt(2), 0, 1.0),/*J*/ \n\
+												vec4(0, 2*sqrt(2), -sqrt(2), 1.0));/*G*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesCC[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 8;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA CD\n\
+				const vec4 verticesCD[4] = vec4[4](\n\
+												vec4(0, sqrt(2), -2*sqrt(2), 1.0),/*C*/ \n\
+												vec4(sqrt(2), 0, -2*sqrt(2), 1.0),/*Z*/ \n\
+												vec4(-sqrt(2), 0, -2*sqrt(2), 1.0),/*AA*/ \n\
+												vec4(0, -sqrt(2), -2*sqrt(2), 1.0));/*D*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesCD[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 9;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA CE\n\
+				const vec4 verticesCE[4] = vec4[4](\n\
+												vec4(0, -2*sqrt(2), sqrt(2), 1.0),/*F*/ \n\
+												vec4(-sqrt(2), -2*sqrt(2), 0, 1.0),/*L*/ \n\
+												vec4(sqrt(2), -2 * sqrt(2), 0, 1.0),/*K*/ \n\
+												vec4(0, -2*sqrt(2), -sqrt(2), 1.0));/*H*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesCE[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 10;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA CF\n\
+				const vec4 verticesCF[4] = vec4[4](\n\
+												vec4(2*sqrt(2), 0, sqrt(2), 1.0),/*R*/ \n\
+												vec4(2*sqrt(2), -sqrt(2), 0, 1.0),/*P*/ \n\
+												vec4(2*sqrt(2), sqrt(2), 0, 1.0),/*N*/ \n\
+												vec4(2*sqrt(2), 0, -sqrt(2), 1.0));/*T*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*verticesCF[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_PrimitiveID = 11;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+			}"
+		};
+#pragma endregion
+
 		static const GLchar * fragment_shader_source[] =
 		{
 			"#version 330\n\
