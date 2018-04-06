@@ -157,7 +157,12 @@ void myGUI() {
 		ImGui::RadioButton("Exercise 3", &ex, 2);
 		ImGui::RadioButton("Exercise 4", &ex, 3);
 		ImGui::RadioButton("Exercise 5", &ex, 4);
-		ImGui::RadioButton("Exercise 6", &ex, 5);
+		ImGui::RadioButton("Exercise 6.1", &ex, 5);
+		ImGui::SameLine();
+		ImGui::RadioButton("Exercise 6.2", &ex, 6);
+		ImGui::RadioButton("Exercise 6.3", &ex, 7);
+		ImGui::SameLine();
+		ImGui::RadioButton("Exercise 6.4", &ex, 8);
 
 
 	}
@@ -346,8 +351,11 @@ void myRenderCode(double currentTime) {
 
 
 	//EXERCISE 6
-	/* Make the cubes/octocahedrons of task 3 and/or 4 replace the random characters in the matrix effect, preserving
-	the same changes in color than the letters show.*/
+	/* Consider again the structure of task 1. you generated a cube from a point. The point was in the center of the cube.
+	This means that the result was a body-centered cube, from which a truncated octocahedron was generated.build a wireframe
+	visualization of a bitruncated honeycomb from the truncated octocahedron structure. */
+
+	/* 6.1. build a wireframe visualization of a bitruncated honeycomb from the truncated octocahedron structure.*/
 	case 5:
 		//Reset of exercises
 		if (update[5]) {
@@ -1204,26 +1212,27 @@ namespace MyOctahedronShaderWireframe {
 
 
 
-#pragma region "Octahedron"
+#pragma region "Octahedron Wireframe"
 		static const GLchar * geom_shader_source[] = {
 			"#version 330 \n\
 			uniform mat4 rotation;\n\
 			uniform mat4 selfRot;\n\
 			layout(triangles) in;\n\
-			layout(triangle_strip, max_vertices = 400) out;\n\
+			layout(line_strip, max_vertices = 400) out;\n\
 			void main()\n\
 			{\n\
 				//HEXAGON\n\
 				//CARA A\n\
-				const vec4 verticesA[6] = vec4[6](\n\
-												vec4(0, 2*sqrt(2), sqrt(2), 1.0),/*E*/ \n\
-												vec4(0, sqrt(2), 2*sqrt(2), 1.0),/*A*/ \n\
-												vec4(sqrt(2), 2*sqrt(2), 0, 1.0),/*M*/ \n\
-												vec4(sqrt(2), 0, 2*sqrt(2), 1.0),/*V*/ \n\
-												vec4(2*sqrt(2), sqrt(2), 0, 1.0),/*N*/ \n\
-												vec4(2*sqrt(2), 0, sqrt(2), 1.0));/*R*/ \n\
+				const vec4 verticesA[7] = vec4[7](\n\
+												vec4(0, 2 * sqrt(2), sqrt(2), 1.0),/*E*/ \n\
+												vec4(0, sqrt(2), 2 * sqrt(2), 1.0),/*A*/ \n\
+												vec4(sqrt(2), 0, 2 * sqrt(2), 1.0),/*V*/ \n\
+												vec4(2 * sqrt(2), 0, sqrt(2), 1.0),/*R*/ \n\
+												vec4(2 * sqrt(2), sqrt(2), 0, 1.0),/*N*/ \n\
+												vec4(sqrt(2), 2 * sqrt(2), 0, 1.0),/*M*/ \n\
+												vec4(0, 2 * sqrt(2), sqrt(2), 1.0));/*E*/ \n\
 				\n\
-				for (int i = 0; i<6; i++)\n\
+				for (int i = 0; i<7; i++)\n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesA[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 0;\n\
@@ -1232,15 +1241,16 @@ namespace MyOctahedronShaderWireframe {
 				EndPrimitive();\n\
 				\n\
 				//CARA B\n\
-				const vec4 verticesB[6] = vec4[6](\n\
+				const vec4 verticesB[7] = vec4[7](\n\
 												vec4(0, sqrt(2), 2*sqrt(2), 1.0),/*A*/ \n\
 												vec4(0, 2*sqrt(2), sqrt(2), 1.0),/*E*/ \n\
-												vec4(-sqrt(2), 0, 2*sqrt(2), 1.0),/*W*/ \n\
-												vec4(-sqrt(2), 2*sqrt(2), 0, 1.0),/*J*/ \n\
-												vec4(-2*sqrt(2), 0, sqrt(2), 1.0),/*S*/ \n\
-												vec4(-2*sqrt(2), sqrt(2), 0, 1.0));/*O*/ \n\
+												vec4(-sqrt(2), 2 * sqrt(2), 0, 1.0),/*J*/ \n\
+												vec4(-2 * sqrt(2), sqrt(2), 0, 1.0),/*O*/ \n\
+												vec4(-2 * sqrt(2), 0, sqrt(2), 1.0),/*S*/ \n\
+												vec4(-sqrt(2), 0, 2 * sqrt(2), 1.0),/*W*/ \n\
+												vec4(0, sqrt(2), 2 * sqrt(2), 1.0));/*A*/ \n\
 				\n\
-				for (int i = 0; i<6; i++)\n\
+				for (int i = 0; i<7; i++)\n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesB[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 1;\n\
@@ -1249,15 +1259,16 @@ namespace MyOctahedronShaderWireframe {
 				EndPrimitive();\n\
 				\n\
 				//CARA C\n\
-				const vec4 verticesC[6] = vec4[6](\n\
-												vec4(sqrt(2), 0, 2*sqrt(2), 1.0),/*V*/ \n\
-												vec4(0, -sqrt(2), 2*sqrt(2), 1.0),/*B*/ \n\
-												vec4(2*sqrt(2), 0, sqrt(2), 1.0),/*R*/ \n\
-												vec4(0, -2*sqrt(2), sqrt(2), 1.0),/*F*/ \n\
-												vec4(2*sqrt(2), -sqrt(2), 0, 1.0),/*P*/ \n\
-												vec4(sqrt(2), -2 * sqrt(2), 0, 1.0));/*K*/ \n\
+				const vec4 verticesC[7] = vec4[7](\n\
+												vec4(sqrt(2), 0, 2 * sqrt(2), 1.0),/*V*/ \n\
+												vec4(0, -sqrt(2), 2 * sqrt(2), 1.0),/*B*/ \n\
+												vec4(0, -2 * sqrt(2), sqrt(2), 1.0),/*F*/ \n\
+												vec4(sqrt(2), -2 * sqrt(2), 0, 1.0),/*K*/ \n\
+												vec4(2 * sqrt(2), -sqrt(2), 0, 1.0),/*P*/ \n\
+												vec4(2 * sqrt(2), 0, sqrt(2), 1.0),/*R*/ \n\
+												vec4(sqrt(2), 0, 2 * sqrt(2), 1.0));/*V*/ \n\
 			\n\
-			for (int i = 0; i<6; i++) \n\
+			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position =rotation*(selfRot*verticesC[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 2;\n\
@@ -1266,15 +1277,16 @@ namespace MyOctahedronShaderWireframe {
 				EndPrimitive();\n\
 				\n\
 				//CARA D\n\
-				const vec4 verticesD[6] = vec4[6](\n\
-												vec4(0, -2*sqrt(2), sqrt(2), 1.0),/*F*/ \n\
-												vec4(0, -sqrt(2), 2*sqrt(2), 1.0),/*B*/ \n\
-												vec4(-sqrt(2), -2*sqrt(2), 0, 1.0),/*L*/ \n\
-												vec4(-sqrt(2), 0, 2*sqrt(2), 1.0),/*W*/ \n\
-												vec4(-2*sqrt(2), -sqrt(2), 0, 1.0),/*Q*/ \n\
-												vec4(-2*sqrt(2), 0, sqrt(2), 1.0));/*S*/ \n\
+				const vec4 verticesD[7] = vec4[7](\n\
+												vec4(0, -2 * sqrt(2), sqrt(2), 1.0),/*F*/ \n\
+												vec4(0, -sqrt(2), 2 * sqrt(2), 1.0),/*B*/ \n\
+												vec4(-sqrt(2), 0, 2 * sqrt(2), 1.0),/*W*/ \n\
+												vec4(-2 * sqrt(2), 0, sqrt(2), 1.0),/*S*/ \n\
+												vec4(-2 * sqrt(2), -sqrt(2), 0, 1.0),/*Q*/ \n\
+												vec4(-sqrt(2), -2 * sqrt(2), 0, 1.0),/*L*/ \n\
+												vec4(0, -2 * sqrt(2), sqrt(2), 1.0));/*F*/ \n\
 			\n\
-			for (int i = 0; i<6; i++) \n\
+			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesD[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 3;\n\
@@ -1283,15 +1295,16 @@ namespace MyOctahedronShaderWireframe {
 				EndPrimitive();\n\
 				\n\
 				//CARA E\n\
-				const vec4 verticesE[6] = vec4[6](\n\
-												vec4(sqrt(2), 2*sqrt(2), 0, 1.0),/*M*/ \n\
-												vec4(2*sqrt(2), sqrt(2), 0, 1.0),/*N*/ \n\
-												vec4(0, 2*sqrt(2), -sqrt(2), 1.0),/*G*/ \n\
-												vec4(2*sqrt(2), 0, -sqrt(2), 1.0),/*T*/ \n\
-												vec4(0, sqrt(2), -2*sqrt(2), 1.0),/*C*/ \n\
-												vec4(sqrt(2), 0, -2*sqrt(2), 1.0));/*Z*/ \n\
+				const vec4 verticesE[7] = vec4[7](\n\
+												vec4(sqrt(2), 2 * sqrt(2), 0, 1.0),/*M*/ \n\
+												vec4(2 * sqrt(2), sqrt(2), 0, 1.0),/*N*/ \n\
+												vec4(2 * sqrt(2), 0, -sqrt(2), 1.0),/*T*/ \n\
+												vec4(sqrt(2), 0, -2 * sqrt(2), 1.0),/*Z*/ \n\
+												vec4(0, sqrt(2), -2 * sqrt(2), 1.0),/*C*/ \n\
+												vec4(0, 2 * sqrt(2), -sqrt(2), 1.0),/*G*/ \n\
+												vec4(sqrt(2), 2 * sqrt(2), 0, 1.0));/*M*/ \n\
 			\n\
-			for (int i = 0; i<6; i++) \n\
+			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesE[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 4;\n\
@@ -1300,15 +1313,16 @@ namespace MyOctahedronShaderWireframe {
 				EndPrimitive();\n\
 				\n\
 				//CARA F\n\
-				const vec4 verticesF[6] = vec4[6](\n\
+				const vec4 verticesF[7] = vec4[7](\n\
 												vec4(2*sqrt(2), -sqrt(2), 0, 1.0),/*P*/ \n\
 												vec4(sqrt(2), -2 * sqrt(2), 0, 1.0),/*K*/ \n\
-												vec4(2*sqrt(2), 0, -sqrt(2), 1.0),/*T*/ \n\
 												vec4(0, -2*sqrt(2), -sqrt(2), 1.0),/*H*/ \n\
+												vec4(0, -sqrt(2), -2*sqrt(2), 1.0),/*D*/ \n\
 												vec4(sqrt(2), 0, -2*sqrt(2), 1.0),/*Z*/ \n\
-												vec4(0, -sqrt(2), -2*sqrt(2), 1.0));/*D*/ \n\
+												vec4(2*sqrt(2), 0, -sqrt(2), 1.0),/*T*/ \n\
+												vec4(2*sqrt(2), -sqrt(2), 0, 1.0));/*P*/ \n\
 			\n\
-			for (int i = 0; i<6; i++) \n\
+			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesF[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 5;\n\
@@ -1317,15 +1331,16 @@ namespace MyOctahedronShaderWireframe {
 				EndPrimitive();\n\
 				\n\
 				//CARA G\n\
-				const vec4 verticesG[6] = vec4[6](\n\
+				const vec4 verticesG[7] = vec4[7](\n\
 												vec4(-sqrt(2), -2*sqrt(2), 0, 1.0),/*L*/ \n\
 												vec4(-2*sqrt(2), -sqrt(2), 0, 1.0),/*Q*/ \n\
-												vec4(0, -2*sqrt(2), -sqrt(2), 1.0),/*H*/ \n\
 												vec4(-2*sqrt(2), 0, -sqrt(2), 1.0),/*U*/ \n\
+												vec4(-sqrt(2), 0, -2*sqrt(2), 1.0),/*AA*/ \n\
 												vec4(0, -sqrt(2), -2*sqrt(2), 1.0),/*D*/ \n\
-												vec4(-sqrt(2), 0, -2*sqrt(2), 1.0));/*AA*/ \n\
+												vec4(0, -2*sqrt(2), -sqrt(2), 1.0),/*H*/ \n\
+												vec4(-sqrt(2), -2*sqrt(2), 0, 1.0));/*L*/ \n\
 			\n\
-			for (int i = 0; i<6; i++) \n\
+			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesG[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 5;\n\
@@ -1334,114 +1349,22 @@ namespace MyOctahedronShaderWireframe {
 				EndPrimitive();\n\
 				\n\
 				//CARA H\n\
-				const vec4 verticesH[6] = vec4[6](\n\
+				const vec4 verticesH[7] = vec4[7](\n\
 												vec4(-2*sqrt(2), 0, -sqrt(2), 1.0),/*U*/ \n\
 												vec4(-2*sqrt(2), sqrt(2), 0, 1.0),/*O*/ \n\
-												vec4(-sqrt(2), 0, -2*sqrt(2), 1.0),/*AA*/ \n\
 												vec4(-sqrt(2), 2*sqrt(2), 0, 1.0),/*J*/ \n\
+												vec4(0, 2*sqrt(2), -sqrt(2), 1.0),/*G*/ \n\
 												vec4(0, sqrt(2), -2*sqrt(2), 1.0),/*C*/ \n\
-												vec4(0, 2*sqrt(2), -sqrt(2), 1.0));/*G*/ \n\
+												vec4(-sqrt(2), 0, -2*sqrt(2), 1.0),/*AA*/ \n\
+												vec4(-2*sqrt(2), 0, -sqrt(2), 1.0));/*U*/ \n\
 			\n\
-			for (int i = 0; i<6; i++) \n\
+			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesH[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
-				\n\
-				\n\
-				\n\
-				//CARA CA\n\
-				const vec4 verticesCA[4] = vec4[4](\n\
-												vec4(0, sqrt(2), 2*sqrt(2), 1.0),/*A*/ \n\
-												vec4(-sqrt(2), 0, 2*sqrt(2), 1.0),/*W*/ \n\
-												vec4(sqrt(2), 0, 2*sqrt(2), 1.0),/*V*/ \n\
-												vec4(0, -sqrt(2), 2*sqrt(2), 1.0));/*B*/ \n\
-			\n\
-			for (int i = 0; i<4; i++) \n\
-				{\n\
-					gl_Position = rotation*(selfRot*verticesCA[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				\n\
-				//CARA CB\n\
-				const vec4 verticesCB[4] = vec4[4](\n\
-												vec4(-2*sqrt(2), 0, sqrt(2), 1.0),/*S*/ \n\
-												vec4(-2*sqrt(2), sqrt(2), 0, 1.0),/*O*/ \n\
-												vec4(-2 * sqrt(2), -sqrt(2), 0, 1.0),/*Q*/ \n\
-												vec4(-2*sqrt(2), 0, -sqrt(2), 1.0));/*U*/ \n\
-			\n\
-			for (int i = 0; i<4; i++) \n\
-				{\n\
-					gl_Position = rotation*(selfRot*verticesCB[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				\n\
-				//CARA CC\n\
-				const vec4 verticesCC[4] = vec4[4](\n\
-												vec4(0, 2*sqrt(2), sqrt(2), 1.0),/*E*/ \n\
-												vec4(sqrt(2), 2*sqrt(2), 0, 1.0),/*M*/ \n\
-												vec4(-sqrt(2), 2*sqrt(2), 0, 1.0),/*J*/ \n\
-												vec4(0, 2*sqrt(2), -sqrt(2), 1.0));/*G*/ \n\
-			\n\
-			for (int i = 0; i<4; i++) \n\
-				{\n\
-					gl_Position = rotation*(selfRot*verticesCC[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				\n\
-				//CARA CD\n\
-				const vec4 verticesCD[4] = vec4[4](\n\
-												vec4(0, sqrt(2), -2*sqrt(2), 1.0),/*C*/ \n\
-												vec4(sqrt(2), 0, -2*sqrt(2), 1.0),/*Z*/ \n\
-												vec4(-sqrt(2), 0, -2*sqrt(2), 1.0),/*AA*/ \n\
-												vec4(0, -sqrt(2), -2*sqrt(2), 1.0));/*D*/ \n\
-			\n\
-			for (int i = 0; i<4; i++) \n\
-				{\n\
-					gl_Position = rotation*(selfRot*verticesCD[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				\n\
-				//CARA CE\n\
-				const vec4 verticesCE[4] = vec4[4](\n\
-												vec4(0, -2*sqrt(2), sqrt(2), 1.0),/*F*/ \n\
-												vec4(-sqrt(2), -2*sqrt(2), 0, 1.0),/*L*/ \n\
-												vec4(sqrt(2), -2 * sqrt(2), 0, 1.0),/*K*/ \n\
-												vec4(0, -2*sqrt(2), -sqrt(2), 1.0));/*H*/ \n\
-			\n\
-			for (int i = 0; i<4; i++) \n\
-				{\n\
-					gl_Position = rotation*(selfRot*verticesCE[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				\n\
-				//CARA CF\n\
-				const vec4 verticesCF[4] = vec4[4](\n\
-												vec4(2*sqrt(2), 0, sqrt(2), 1.0),/*R*/ \n\
-												vec4(2*sqrt(2), -sqrt(2), 0, 1.0),/*P*/ \n\
-												vec4(2*sqrt(2), sqrt(2), 0, 1.0),/*N*/ \n\
-												vec4(2*sqrt(2), 0, -sqrt(2), 1.0));/*T*/ \n\
-			\n\
-			for (int i = 0; i<4; i++) \n\
-				{\n\
-					gl_Position = rotation*(selfRot*verticesCF[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				\n\
 			}"
 		};
 #pragma endregion
