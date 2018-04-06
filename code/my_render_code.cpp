@@ -11,14 +11,23 @@
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_sdl_gl3.h>
 
-#define NUM_ROWS 14
-#define NUM_COLS 26
+#define NUM_ROWS 70
+#define NUM_COLS 70
 
 #define OFFSET 1.1
 
+struct matrixBeh {
+
+	int speed;
+	int initPos;
+	int num_elements;
+
+
+} matrix[NUM_COLS];
+
 
 int rotAxisMatrix[NUM_COLS][NUM_ROWS];
-int speed[NUM_COLS];
+
 
 #define MAX_CUBES 4
 #define EXERCISE_NUM 6
@@ -50,7 +59,7 @@ namespace MyOctahedronShader {
 	void myCleanupCode(void);
 	void myRenderCode(double currentTime, glm::vec4 pos);
 	void myRenderCode(double currentTime, glm::vec4 pos, int axis);
-	void myRenderCodeMatrix(double currentTime, glm::vec4 pos, int axis, int speed);
+	void myRenderCodeMatrix(double currentTime, glm::vec4 pos, int axis, int speed, bool first);
 
 	GLuint myRenderProgram;
 	GLuint myVAO;
@@ -303,10 +312,15 @@ void myRenderCode(double currentTime) {
 		//Reset of exercises
 		if (update[4]) {
 			for (int i = 0; i < NUM_COLS; i++) {
-				speed[i] = rand() % 4 + 1;
-				for (int j = 0; j < NUM_ROWS; j++) {
-					rotAxisMatrix[i][j] = rand() % 3;
+				matrix[i].speed = rand() % 20 + 5;
+				matrix[i].initPos = rand() % 20;
+				matrix[i].num_elements = rand() % NUM_ROWS + 10;
+				
+				if (matrix[i].num_elements > NUM_ROWS) {
+					matrix[i].num_elements = 2*matrix[i].num_elements - NUM_ROWS;
 				}
+
+				
 			}
 			for (int i = 0; i < EXERCISE_NUM; i++) {
 				update[i] = true;
@@ -314,8 +328,17 @@ void myRenderCode(double currentTime) {
 			update[4] = false;
 		}
 		for (int i = 0; i < NUM_COLS; i++) {
-			for (int j = 0; j < NUM_ROWS; j++) {
-				MyOctahedronShader::myRenderCodeMatrix(currentTime, glm::vec4(i*2 *2*OFFSET, j*2 * OFFSET+speed[i], 0, 1.f), rotAxisMatrix[i][j], speed[i]);
+			for (int j = 0; j < matrix[i].num_elements; j++) {
+
+				rotAxisMatrix[i][j] = rand() % 3;
+
+				if (j == 0) {
+					MyOctahedronShader::myRenderCodeMatrix(currentTime, glm::vec4(i * 4 * sqrt(2)*OFFSET, j * 4 * sqrt(2) * OFFSET + matrix[i].initPos, matrix[i].initPos * 2, 1.f), rotAxisMatrix[i][j], matrix[i].speed, true);
+
+				}
+				else {
+					MyOctahedronShader::myRenderCodeMatrix(currentTime, glm::vec4(i * 4 * sqrt(2)*OFFSET, j * 4 * sqrt(2) * OFFSET + matrix[i].initPos, matrix[i].initPos * 2, 1.f), rotAxisMatrix[i][j], matrix[i].speed, false);
+				}
 			}
 		}
 
@@ -702,6 +725,7 @@ namespace MyOctahedronShader {
 			"#version 330 \n\
 			uniform mat4 rotation;\n\
 			uniform mat4 selfRot;\n\
+			uniform int IDAdd = 0;\n\
 			layout(triangles) in;\n\
 			layout(triangle_strip, max_vertices = 400) out;\n\
 			void main()\n\
@@ -719,7 +743,7 @@ namespace MyOctahedronShader {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesA[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 0+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -736,7 +760,7 @@ namespace MyOctahedronShader {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesB[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 1;\n\
+					gl_PrimitiveID = 1+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -753,7 +777,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<6; i++) \n\
 				{\n\
 					gl_Position =rotation*(selfRot*verticesC[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 2;\n\
+					gl_PrimitiveID = 2+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -770,7 +794,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<6; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesD[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 3;\n\
+					gl_PrimitiveID = 3+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -787,7 +811,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<6; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesE[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 4;\n\
+					gl_PrimitiveID = 4+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -804,7 +828,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<6; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesF[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -821,7 +845,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<6; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesG[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -838,7 +862,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<6; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesH[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -855,7 +879,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<4; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCA[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -870,7 +894,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<4; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCB[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -885,7 +909,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<4; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCC[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -900,7 +924,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<4; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCD[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -915,7 +939,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<4; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCE[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -930,7 +954,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<4; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCF[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -946,12 +970,18 @@ namespace MyOctahedronShader {
 			out vec4 color;\n\
 			\n\
 			void main() {\n\
-			const vec4 colors[6] = vec4[6](vec4( 0, 1, 0, 1.0),\n\
-											vec4(0, 0.9, 0, 1.0),\n\
-											vec4( 0, 0.8, 0, 1.0),\n\
-											vec4(0, 0.87, 0, 1.0),\n\
-											vec4( 0, 0.95, 0, 1.0),\n\
-											vec4( 0, 0.85, 0, 1.0));\n\
+			const vec4 colors[12] = vec4[12](vec4( 0, 1, 0, 1.0),\n\
+											vec4(0, 0.8, 0, 1.0),\n\
+											vec4( 0, 0.7, 0, 1.0),\n\
+											vec4(0, 0.77, 0, 1.0),\n\
+											vec4( 0, 0.9, 0, 1.0),\n\
+											vec4( 0, 0.6, 0, 1.0),//White\n\
+											vec4(1, 1, 1, 1.0),\n\
+											vec4(1, 0.9, 1, 1.0),\n\
+											vec4(0.9, 1, 1, 1.0),\n\
+											vec4(1, 1, 0.9, 1.0),\n\
+											vec4(0.9, 0.9, 1, 1.0),\n\
+											vec4(1, 0.9, 0.9, 1.0));\n\
 			color = colors[gl_PrimitiveID];\n\
 			}" };
 
@@ -1078,13 +1108,23 @@ namespace MyOctahedronShader {
 
 
 	//CODE THAT RENDERS THE MATRIX
-	void myRenderCodeMatrix(double currentTime, glm::vec4 pos, int axis, int speed) {
+	void myRenderCodeMatrix(double currentTime, glm::vec4 pos, int axis, int speed, bool first) {
 		glUseProgram(myRenderProgram);
-
 
 		glm::mat4 rotation;
 		glm::mat4 translation;
+		int IDAdd = 0;
 
+		
+
+		if (first) {
+			IDAdd = 6;
+		}
+		else {
+			IDAdd = 0;
+		}
+
+		glUniform1i(glGetUniformLocation(myRenderProgram, "IDAdd"), IDAdd);
 		glm::vec4 tmp = GetRandomPoint();
 		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
 		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
