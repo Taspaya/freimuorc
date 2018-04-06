@@ -27,7 +27,22 @@ int rotAxis[MAX_CUBES];
 int ex = 0;
 bool update[EXERCISE_NUM];
 
+
+
 namespace MyFirstShader {
+
+	void myInitCode(void);
+	GLuint myShaderCompile(void);
+
+	void myCleanupCode(void);
+	void myRenderCode(double currentTime, glm::vec4 pos);
+	void myRenderCode(double currentTime, glm::vec4 pos, int axis);
+
+	GLuint myRenderProgram;
+	GLuint myVAO;
+}
+
+namespace MyOctahedronShader {
 
 	void myInitCode(void);
 	GLuint myShaderCompile(void);
@@ -40,6 +55,9 @@ namespace MyFirstShader {
 	GLuint myRenderProgram;
 	GLuint myVAO;
 }
+
+
+
 
 namespace ImGui {
 	void Render();
@@ -153,6 +171,7 @@ void myInitCode(int width, int height) {
 	//RV::_projection = glm::ortho((float)(-width / aux), (float)(width / aux), (float)(-height / aux), (float)(height / aux), 0.01f, 100.f);
 
 	MyFirstShader::myInitCode();
+	MyOctahedronShader::myInitCode();
 }
 
 
@@ -203,17 +222,17 @@ void myRenderCode(double currentTime) {
 	case 1:
 		//Reset of exercises
 		if (update[1]){
-				randomPositions[0] = glm::vec4(0, 0, 0, 1);
-				randomPositions[1] = glm::vec4(2, 2, 0, 1);
-				randomPositions[2] = glm::vec4(4, 0, 0, 1);
-				randomPositions[3] = glm::vec4(2, -2, 0, 1);
+				randomPositions[0] = glm::vec4(-2*sqrt(2), 0, 0, 1);
+				randomPositions[1] = glm::vec4(2*sqrt(2), 0, 0, 1);
+				randomPositions[2] = glm::vec4(0, 2*sqrt(2), -2*sqrt(2), 1);
+				randomPositions[3] = glm::vec4(0, 2*sqrt(2), 2*sqrt(2), 1);
 				for (int i = 0; i < EXERCISE_NUM; i++) {
 					update[i] = true;
 				}
 				update[1] = false;
 		}
 		for (int i = 0; i < MAX_CUBES; i++) {
-			MyFirstShader::myRenderCode(currentTime, randomPositions[i]);				//Replace shader: use octahedron
+			MyOctahedronShader::myRenderCode(currentTime, randomPositions[i]);				
 		}
 		break;
 
@@ -255,7 +274,7 @@ void myRenderCode(double currentTime) {
 			update[3] = false;
 		}
 		for (int i = 0; i < MAX_CUBES; i++) {
-			MyFirstShader::myRenderCode(currentTime, randomPositions[i], rotAxis[i]);			//Replace shader: use octahedron
+			MyOctahedronShader::myRenderCode(currentTime, randomPositions[i], rotAxis[i]);			//Replace shader: use octahedron
 		}
 
 		break;
@@ -280,7 +299,7 @@ void myRenderCode(double currentTime) {
 		}
 		for (int i = 0; i < NUM_COLS; i++) {
 			for (int j = 0; j < NUM_ROWS; j++) {
-				MyFirstShader::myRenderCodeMatrix(currentTime, glm::vec4(i*2 *2*OFFSET, j*2 * OFFSET+speed[i], 0, 1.f), rotAxisMatrix[i][j], speed[i]);
+				MyOctahedronShader::myRenderCodeMatrix(currentTime, glm::vec4(i*2 *2*OFFSET, j*2 * OFFSET+speed[i], 0, 1.f), rotAxisMatrix[i][j], speed[i]);
 			}
 		}
 
@@ -300,6 +319,9 @@ void myRenderCode(double currentTime) {
 
 void myCleanupCode(void) {
 	MyFirstShader::myCleanupCode();
+	MyFirstShader::myCleanupCode();
+
+
 }
 
 
@@ -340,7 +362,7 @@ void linkProgram(GLuint program) {
 *
 *
 *
-*		SHADER DE LOS COJONES
+*		SHADER CUBO
 *
 *
 *
@@ -367,8 +389,6 @@ namespace MyFirstShader {
 			}" };
 
 
-		/*const vec4 inCenters[2] = vec4[2](vec4(inOne.x, inOne.y, inOne.z, 1), \n\
-			vec4(inTwo.x, inTwo.y, inTwo.z, 1)); \n\*/
 		static const GLchar * geom_shader_source[] = {
 			"#version 330 \n\
 			uniform mat4 rotation;\n\
@@ -462,14 +482,191 @@ namespace MyFirstShader {
 			}"
 		};
 
+
+		static const GLchar * fragment_shader_source[] =
+		{
+			"#version 330\n\
+			\n\
+			out vec4 color;\n\
+			\n\
+			void main() {\n\
+			const vec4 colors[6] = vec4[6](vec4( 0, 1, 0, 1.0),\n\
+											vec4(0, 0.9, 0, 1.0),\n\
+											vec4( 0, 0.8, 0, 1.0),\n\
+											vec4(0, 0.87, 0, 1.0),\n\
+											vec4( 0, 0.95, 0, 1.0),\n\
+											vec4( 0, 0.85, 0, 1.0));\n\
+			color = colors[gl_PrimitiveID];\n\
+			}" };
+
+
+		GLuint vertex_shader;
+		GLuint fragment_shader;
+		GLuint geom_shader;
+		GLuint program;
+
+		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
+		glCompileShader(vertex_shader);
+
+		geom_shader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geom_shader, 1, geom_shader_source, NULL);
+		glCompileShader(geom_shader);
+
+		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
+		glCompileShader(fragment_shader);
+
+		program = glCreateProgram();
+		glAttachShader(program, vertex_shader);
+		glAttachShader(program, fragment_shader);
+		glAttachShader(program, geom_shader);
+		glLinkProgram(program);
+
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+
+		return program;
+	}
+
+
+
+
+
+	void  myInitCode(void) {
+
+		myRenderProgram = myShaderCompile();
+		//glCreateVertexArrays(1, &myVAO); //use this one on class pc
+		glGenVertexArrays(1, &myVAO);		//Use this one on home pc
+		glBindVertexArray(myVAO);
+
+		glUseProgram(myRenderProgram);
+
+
+	}
+
+
+
+	glm::mat4 myMVP;
+
+	//CODE THAT RENDERS STATTIONARY OBJECTS
+	void myRenderCode(double currentTime, glm::vec4 pos) {
+	
+
+		glUseProgram(myRenderProgram);
+		glm::mat4 rotation = glm::mat4(1);
+
+		glm::vec4 tmp = GetRandomPoint();
+		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
+		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
+
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(rotation));
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
+	//CODE THAT RENDERS ROTATIONAL AND TRANSLATIONAL OBJECTS
+	void myRenderCode(double currentTime, glm::vec4 pos, int axis) {
+
+		glUseProgram(myRenderProgram);
+		glm::mat4 rotation; 
+		glm::mat4 translation;	
+
+		glm::vec4 tmp = GetRandomPoint();
+		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
+		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
+
+		
+		switch (axis) {
+
+		//Rotation with X axis
+		case 0:
+			rotation = { 1.0f, 0.f, 0.f, 0.f,
+							0.f, cos(currentTime), -sin(currentTime), 0.f,
+							0.f, sin(currentTime), cos(currentTime), 0.f,
+							0.f, 0.f, 0.f, 1.f };
+			break;
+			
+		//Rotation with Y axis
+		case 1:
+			rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
+				0.f, 1.f, 0.f, 0.f,
+				sin(currentTime), 0.f, cos(currentTime), 0.f,
+				0.f, 0.f, 0.f, 1.f };
+			break;
+			
+		//Rotation with Z axis
+		case 2:
+			rotation = { cos(currentTime), -sin(currentTime), 0.f, 0.f,
+					        sin(currentTime), cos(currentTime), 0.f, 0.f,
+						0.f, 0.f, 1.f, 0.f,
+						0.f, 0.f, 0.f, 1.f };
+			break;
+		}
+			
+
+		//Translate the cubes
+		translation = glm::translate(glm::mat4(1), glm::vec3(0.f, fmod(-currentTime, 10.f)+5.f, 0.f));
+		
+		
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP*translation));
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(rotation));
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
+
+
+	
+
+}
+
+
+/*
+*
+*
+*
+*
+*		SHADER CUBO
+*
+*
+*
+*
+*
+*/
+
+namespace MyOctahedronShader {
+	void myCleanupCode() {
+		glDeleteVertexArrays(1, &myVAO);
+		glDeleteProgram(myRenderProgram);
+	}
+
+
+	GLuint myShaderCompile(void) {
+
+		static const GLchar * vertex_shader_source[] =
+		{
+			"#version 330										\n\
+			\n\
+			uniform vec4 inOne;\n\
+			void main() {\n\
+			gl_Position = inOne; \n\
+			}" };
+
+
+
 #pragma region "Octahedron"
-		static const GLchar * octa_geom_shader_source[] = {
+		static const GLchar * geom_shader_source[] = {
 			"#version 330 \n\
 			uniform mat4 rotation;\n\
-			uniform vec4 inOne;\n\
-			uniform vec4 inTwo;\n\
+			uniform mat4 selfRot;\n\
 			layout(triangles) in;\n\
-			layout(triangle_strip, max_vertices = 256) out;\n\
+			layout(triangle_strip, max_vertices = 400) out;\n\
 			void main()\n\
 			{\n\
 				//HEXAGON\n\
@@ -484,7 +681,7 @@ namespace MyFirstShader {
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
-					gl_Position = rotation*verticesA[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_Position = rotation*(selfRot*verticesA[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 0;\n\
 					EmitVertex();\n\
 				}\n\
@@ -501,7 +698,7 @@ namespace MyFirstShader {
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
-					gl_Position = rotation*verticesB[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_Position = rotation*(selfRot*verticesB[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 1;\n\
 					EmitVertex();\n\
 				}\n\
@@ -518,7 +715,7 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<6; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesC[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_Position =rotation*(selfRot*verticesC[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
@@ -535,7 +732,7 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<6; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesD[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_Position = rotation*(selfRot*verticesD[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 3;\n\
 					EmitVertex();\n\
 				}\n\
@@ -552,7 +749,7 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<6; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesE[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_Position = rotation*(selfRot*verticesE[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 4;\n\
 					EmitVertex();\n\
 				}\n\
@@ -569,7 +766,7 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<6; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesF[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_Position = rotation*(selfRot*verticesF[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
@@ -586,7 +783,7 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<6; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesG[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_Position = rotation*(selfRot*verticesG[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
@@ -603,7 +800,7 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<6; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesH[i]+gl_in[0].gl_Position+inOne;\n\
+					gl_Position = rotation*(selfRot*verticesH[i]+gl_in[0].gl_Position);\n\
 					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
@@ -620,8 +817,8 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<4; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesCA[i]+gl_in[0].gl_Position+inOne;\n\
-					gl_PrimitiveID = 6;\n\
+					gl_Position = rotation*(selfRot*verticesCA[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -635,8 +832,8 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<4; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesCB[i]+gl_in[0].gl_Position+inOne;\n\
-					gl_PrimitiveID = 7;\n\
+					gl_Position = rotation*(selfRot*verticesCB[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -650,8 +847,8 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<4; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesCC[i]+gl_in[0].gl_Position+inOne;\n\
-					gl_PrimitiveID = 8;\n\
+					gl_Position = rotation*(selfRot*verticesCC[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -665,8 +862,8 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<4; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesCD[i]+gl_in[0].gl_Position+inOne;\n\
-					gl_PrimitiveID = 9;\n\
+					gl_Position = rotation*(selfRot*verticesCD[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -680,8 +877,8 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<4; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesCE[i]+gl_in[0].gl_Position+inOne;\n\
-					gl_PrimitiveID = 10;\n\
+					gl_Position = rotation*(selfRot*verticesCE[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -695,8 +892,8 @@ namespace MyFirstShader {
 			\n\
 			for (int i = 0; i<4; i++) \n\
 				{\n\
-					gl_Position = rotation*verticesCF[i]+gl_in[0].gl_Position+inOne;\n\
-					gl_PrimitiveID = 11;\n\
+					gl_Position = rotation*(selfRot*verticesCF[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -773,7 +970,7 @@ namespace MyFirstShader {
 
 	//CODE THAT RENDERS STATTIONARY OBJECTS
 	void myRenderCode(double currentTime, glm::vec4 pos) {
-	
+
 		glUseProgram(myRenderProgram);
 		glm::mat4 rotation = glm::mat4(1);
 
@@ -793,46 +990,46 @@ namespace MyFirstShader {
 	void myRenderCode(double currentTime, glm::vec4 pos, int axis) {
 
 		glUseProgram(myRenderProgram);
-		glm::mat4 rotation; 
-		glm::mat4 translation;	
+		glm::mat4 rotation;
+		glm::mat4 translation;
 
 		glm::vec4 tmp = GetRandomPoint();
 		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
 		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
 
-		
+
 		switch (axis) {
 
-		//Rotation with X axis
+			//Rotation with X axis
 		case 0:
 			rotation = { 1.0f, 0.f, 0.f, 0.f,
-							0.f, cos(currentTime), -sin(currentTime), 0.f,
-							0.f, sin(currentTime), cos(currentTime), 0.f,
-							0.f, 0.f, 0.f, 1.f };
+				0.f, cos(currentTime), -sin(currentTime), 0.f,
+				0.f, sin(currentTime), cos(currentTime), 0.f,
+				0.f, 0.f, 0.f, 1.f };
 			break;
-			
-		//Rotation with Y axis
+
+			//Rotation with Y axis
 		case 1:
 			rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
 				0.f, 1.f, 0.f, 0.f,
 				sin(currentTime), 0.f, cos(currentTime), 0.f,
 				0.f, 0.f, 0.f, 1.f };
 			break;
-			
-		//Rotation with Z axis
+
+			//Rotation with Z axis
 		case 2:
 			rotation = { cos(currentTime), -sin(currentTime), 0.f, 0.f,
-					        sin(currentTime), cos(currentTime), 0.f, 0.f,
-						0.f, 0.f, 1.f, 0.f,
-						0.f, 0.f, 0.f, 1.f };
+				sin(currentTime), cos(currentTime), 0.f, 0.f,
+				0.f, 0.f, 1.f, 0.f,
+				0.f, 0.f, 0.f, 1.f };
 			break;
 		}
-			
+
 
 		//Translate the cubes
-		translation = glm::translate(glm::mat4(1), glm::vec3(0.f, fmod(-currentTime, 10.f)+5.f, 0.f));
-		
-		
+		translation = glm::translate(glm::mat4(1), glm::vec3(0.f, fmod(-currentTime, 10.f) + 5.f, 0.f));
+
+
 
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP*translation));
 
@@ -892,4 +1089,6 @@ namespace MyFirstShader {
 	}
 
 }
+
+
 
