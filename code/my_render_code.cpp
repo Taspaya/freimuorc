@@ -96,6 +96,7 @@ namespace RenderVars {
 
 	glm::mat4 _projection;
 	glm::mat4 _modelView;
+	glm::mat4 _targetViewPoint;
 	glm::mat4 _MVP;
 	glm::mat4 _inv_modelview;
 	glm::vec4 _cameraPoint;
@@ -213,6 +214,8 @@ void myRenderCode(double currentTime) {
 	RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
 	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
 	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
+
+	RV::_targetViewPoint = RV::_projection *RV::_modelView;
 
 	RV::_MVP = RV::_projection * RV::_modelView;
 
@@ -339,7 +342,6 @@ void myRenderCode(double currentTime) {
 
 				if (j == 0) {
 					MyOctahedronShader::myRenderCodeMatrix(currentTime, glm::vec4(i * 4 * sqrt(2)*OFFSET, j * 4 * sqrt(2) * OFFSET + matrix[i].initPos, matrix[i].initPos * 2, 1.f), rotAxisMatrix[i][j], matrix[i].speed, true);
-
 				}
 				else {
 					MyOctahedronShader::myRenderCodeMatrix(currentTime, glm::vec4(i * 4 * sqrt(2)*OFFSET, j * 4 * sqrt(2) * OFFSET + matrix[i].initPos, matrix[i].initPos * 2, 1.f), rotAxisMatrix[i][j], matrix[i].speed, false);
@@ -372,6 +374,46 @@ void myRenderCode(double currentTime) {
 			MyOctahedronShaderWireframe::myRenderCode(currentTime, randomPositions[i]);
 		}
 		break;
+
+
+		/* 6.1. build a wireframe visualization of a bitruncated honeycomb from the truncated octocahedron structure.*/
+
+	case 6:
+		for (int i = 0; i < NUM_ROWS; i++) {
+			for (int j = 0; j < NUM_COLS; j++) {
+
+				if (RV::_MVP != RV::_targetViewPoint) {
+					if (i % 2 == 0) {
+						if (j % 2 == 0) {
+							MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1));
+						}
+					}
+					else {
+						if (j % 2 == 1) {
+							MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1));
+						}
+					}
+				}
+				else {
+					if (i % 2 == 0) {
+						if (j % 2 == 0) {
+							MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
+						}
+					}
+					else {
+						if (j % 2 == 1) {
+							MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
+						}
+					}
+				}
+
+
+			}
+		}
+		break;
+
+
+
 	default:
 		break;
 	}
