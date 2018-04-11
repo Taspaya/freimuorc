@@ -36,7 +36,8 @@ int rotAxis[MAX_CUBES];
 int ex = 0;
 bool update[EXERCISE_NUM];
 
-
+int w, h;
+int aux = 50;
 
 namespace MyFirstShader {
 
@@ -180,6 +181,9 @@ glm::vec4 GetRandomPoint() {
 
 void myInitCode(int width, int height) {
 
+	w = width;
+	h = height;
+
 	glViewport(0, 0, width, height);
 	glClearColor(0, 0, 0, 1);
 	glClearDepth(1.f);
@@ -198,7 +202,6 @@ void myInitCode(int width, int height) {
 
 	//int aux = 200;
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar); 
-	//RV::_projection = glm::ortho((float)(-width / aux), (float)(width / aux), (float)(-height / aux), (float)(height / aux), 0.01f, 100.f);
 
 	MyFirstShader::myInitCode();
 	MyOctahedronShader::myInitCode();
@@ -207,6 +210,8 @@ void myInitCode(int width, int height) {
 
 
 void myRenderCode(double currentTime) {
+
+	std::cout<<cos(currentTime) << std::endl;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -217,8 +222,10 @@ void myRenderCode(double currentTime) {
 
 	RV::_targetViewPoint = RV::_projection *RV::_modelView;
 
-	RV::_MVP = RV::_projection * RV::_modelView;
+	
 
+	//	RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+	// RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
 
 	//SWITCH STATEMENT: to check exercises
 	switch (ex) {
@@ -232,6 +239,9 @@ void myRenderCode(double currentTime) {
 	case 0:
 		//Reset of exercises
 		if (update[0]) {
+
+			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
+
 			for (int i = 0; i < MAX_CUBES; i++) {
 				randomPositions[i] = GetRandomPoint();
 			}
@@ -255,14 +265,17 @@ void myRenderCode(double currentTime) {
 	case 1:
 		//Reset of exercises
 		if (update[1]){
-				randomPositions[0] = glm::vec4(-2*sqrt(2), 0, 0, 1);
-				randomPositions[1] = glm::vec4(2*sqrt(2), 0, 0, 1);
-				randomPositions[2] = glm::vec4(0, 2*sqrt(2), -2*sqrt(2), 1);
-				randomPositions[3] = glm::vec4(0, 2*sqrt(2), 2*sqrt(2), 1);
-				for (int i = 0; i < EXERCISE_NUM; i++) {
-					update[i] = true;
-				}
-				update[1] = false;
+				
+			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
+
+			randomPositions[0] = glm::vec4(-2*sqrt(2), 0, 0, 1);
+			randomPositions[1] = glm::vec4(2*sqrt(2), 0, 0, 1);
+			randomPositions[2] = glm::vec4(0, 2*sqrt(2), -2*sqrt(2), 1);
+			randomPositions[3] = glm::vec4(0, 2*sqrt(2), 2*sqrt(2), 1);
+			for (int i = 0; i < EXERCISE_NUM; i++) {
+				update[i] = true;
+			}
+			update[1] = false;
 		}
 		for (int i = 0; i < MAX_CUBES; i++) {
 			MyOctahedronShader::myRenderCode(currentTime, randomPositions[i]);				
@@ -276,6 +289,9 @@ void myRenderCode(double currentTime) {
 	case 2: 
 		//Reset of exercises
 		if (update[2]) {
+
+			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+
 			for (int i = 0; i < MAX_CUBES; i++) {
 				randomPositions[i] = GetRandomPoint();
 				rotAxis[i] = rand() % 3;
@@ -297,6 +313,9 @@ void myRenderCode(double currentTime) {
 	case 3:
 		//Reset of exercises
 		if (update[3]) {
+
+			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
+
 			for (int i = 0; i < MAX_CUBES; i++) {
 				randomPositions[i] = GetRandomPoint();
 				rotAxis[i] = rand() % 3;
@@ -319,6 +338,9 @@ void myRenderCode(double currentTime) {
 	case 4:
 		//Reset of exercises
 		if (update[4]) {
+
+			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
+
 			for (int i = 0; i < NUM_COLS; i++) {
 				matrix[i].speed = rand() % 20 + 5;
 				matrix[i].initPos = rand() % 20;
@@ -361,6 +383,9 @@ void myRenderCode(double currentTime) {
 	case 5:
 		//Reset of exercises
 		if (update[5]) {
+
+			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
+
 			randomPositions[0] = glm::vec4(-2 * sqrt(2), 0, 0, 1);
 			randomPositions[1] = glm::vec4(2 * sqrt(2), 0, 0, 1);
 			randomPositions[2] = glm::vec4(0, 2 * sqrt(2), -2 * sqrt(2), 1);
@@ -376,38 +401,40 @@ void myRenderCode(double currentTime) {
 		break;
 
 
-		/* 6.1. build a wireframe visualization of a bitruncated honeycomb from the truncated octocahedron structure.*/
+	/* 6.2. Take again the falling octocahedrons of task 4.Impose that, when the scene is seen from the x-y plane (orthonormal perspective), 
+	impose the falling octocahedrons to be aligned with the elements forming bitruncated honeycomb, and to rotate in a way that makes them
+	often have the same orientation that the elements forming the  wireframe. When the falling octocahedrons meet an orientation that corresponds 
+	to the wireframe of the honeycomb, make them turn white, like the characters in the matrix effect.*/
 
 	case 6:
-		for (int i = 0; i < NUM_ROWS; i++) {
-			for (int j = 0; j < NUM_COLS; j++) {
+		if (update[6]) {
 
-				if (RV::_MVP != RV::_targetViewPoint) {
-					if (i % 2 == 0) {
-						if (j % 2 == 0) {
-							MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1));
-						}
-					}
-					else {
-						if (j % 2 == 1) {
-							MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1));
-						}
+			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+
+			//INIT STUFF
+
+			for (int i = 0; i < EXERCISE_NUM; i++) {
+				update[i] = true;
+			}
+			update[6] = false;
+		}
+		RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+
+
+		for (int i = 0; i < NUM_ROWS/2; i++) {
+			for (int j = 0; j < NUM_COLS/2; j++) {
+
+				if (i % 2 == 0) {
+					if (j % 2 == 0) {
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
 					}
 				}
 				else {
-					if (i % 2 == 0) {
-						if (j % 2 == 0) {
-							MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
-						}
-					}
-					else {
-						if (j % 2 == 1) {
-							MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
-						}
+					if (j % 2 == 1) {
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 2 * sqrt(2), 1), true);
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), -2 * sqrt(2), 1), true);
 					}
 				}
-
-
 			}
 		}
 		break;
@@ -422,7 +449,7 @@ void myRenderCode(double currentTime) {
 	
 
 	
-
+	RV::_MVP = RV::_projection * RV::_modelView;
 	ImGui::Render();
 }
 
@@ -1260,6 +1287,7 @@ namespace MyOctahedronShaderWireframe {
 			uniform mat4 rotation;\n\
 			uniform mat4 selfRot;\n\
 			layout(triangles) in;\n\
+			uniform int IDAdd = 0;\n\
 			layout(line_strip, max_vertices = 400) out;\n\
 			void main()\n\
 			{\n\
@@ -1277,7 +1305,7 @@ namespace MyOctahedronShaderWireframe {
 				for (int i = 0; i<7; i++)\n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesA[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 0+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1295,7 +1323,7 @@ namespace MyOctahedronShaderWireframe {
 				for (int i = 0; i<7; i++)\n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesB[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 1;\n\
+					gl_PrimitiveID = 1+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1313,7 +1341,7 @@ namespace MyOctahedronShaderWireframe {
 			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position =rotation*(selfRot*verticesC[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 2;\n\
+					gl_PrimitiveID = 2+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1331,7 +1359,7 @@ namespace MyOctahedronShaderWireframe {
 			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesD[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 3;\n\
+					gl_PrimitiveID = 3+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1349,7 +1377,7 @@ namespace MyOctahedronShaderWireframe {
 			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesE[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 4;\n\
+					gl_PrimitiveID = 4+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1367,7 +1395,7 @@ namespace MyOctahedronShaderWireframe {
 			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesF[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1385,7 +1413,7 @@ namespace MyOctahedronShaderWireframe {
 			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesG[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1403,7 +1431,7 @@ namespace MyOctahedronShaderWireframe {
 			for (int i = 0; i<7; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesH[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5;\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1418,12 +1446,18 @@ namespace MyOctahedronShaderWireframe {
 			out vec4 color;\n\
 			\n\
 			void main() {\n\
-			const vec4 colors[6] = vec4[6](vec4( 0, 1, 0, 1.0),\n\
-											vec4(0, 0.9, 0, 1.0),\n\
-											vec4( 0, 0.8, 0, 1.0),\n\
-											vec4(0, 0.87, 0, 1.0),\n\
-											vec4( 0, 0.95, 0, 1.0),\n\
-											vec4( 0, 0.85, 0, 1.0));\n\
+			const vec4 colors[12] = vec4[12](vec4( 0, 1, 0, 1.0),\n\
+											vec4(0, 0.8, 0, 1.0),\n\
+											vec4( 0, 0.7, 0, 1.0),\n\
+											vec4(0, 0.77, 0, 1.0),\n\
+											vec4( 0, 0.9, 0, 1.0),\n\
+											vec4( 0, 0.6, 0, 1.0),//White\n\
+											vec4(1, 1, 1, 1.0),\n\
+											vec4(1, 0.9, 1, 1.0),\n\
+											vec4(0.9, 1, 1, 1.0),\n\
+											vec4(1, 1, 0.9, 1.0),\n\
+											vec4(0.9, 0.9, 1, 1.0),\n\
+											vec4(1, 0.9, 0.9, 1.0));\n\
 			color = colors[gl_PrimitiveID];\n\
 			}" };
 
@@ -1456,9 +1490,6 @@ namespace MyOctahedronShaderWireframe {
 
 		return program;
 	}
-
-
-
 
 
 	void  myInitCode(void) {
@@ -1505,6 +1536,20 @@ namespace MyOctahedronShaderWireframe {
 		glm::vec4 tmp = GetRandomPoint();
 		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
 		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
+
+		int IDAdd = 0;
+		float offset = 0.01;
+
+
+		if ((cos(currentTime) >= -offset*2) && (cos(currentTime) <= offset*10) || (cos(currentTime) > -1) && (cos(currentTime) <= (-1 + offset/4)) || (cos(currentTime) >= (1 - offset / 4)) && (cos(currentTime) < 1)) {
+			IDAdd = 6;
+			//std::cout << cos(currentTime) <<std::endl;
+		}
+		else {
+			IDAdd = 0;
+		}
+
+		glUniform1i(glGetUniformLocation(myRenderProgram, "IDAdd"), IDAdd);
 
 
 		switch (axis) {
