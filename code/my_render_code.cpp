@@ -28,9 +28,11 @@ struct matrixBeh {
 
 int rotAxisMatrix[NUM_COLS][NUM_ROWS];
 
+float zPos[NUM_ROWS][NUM_COLS] = { 0 };
+
 
 #define MAX_CUBES 4
-#define EXERCISE_NUM 6
+#define EXERCISE_NUM 10
 glm::vec4 randomPositions[MAX_CUBES] = {glm::vec4(0,0,0,1),glm::vec4(2,2,0,1), glm::vec4(4,0,0,1), glm::vec4(2,-2,0,1) };
 int rotAxis[MAX_CUBES];
 int ex = 0;
@@ -200,6 +202,13 @@ void myInitCode(int width, int height) {
 		update[i] = true;
 	}
 
+
+	for (int i = 0; i < NUM_ROWS / 2; i++) {
+		for (int j = 0; j < NUM_COLS / 2; j++) {
+			zPos[i][j] = 2 * sqrt(2)*(rand() % 4);
+		}
+	}
+
 	//int aux = 200;
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar); 
 
@@ -211,7 +220,7 @@ void myInitCode(int width, int height) {
 
 void myRenderCode(double currentTime) {
 
-	std::cout<<cos(currentTime) << std::endl;
+	//std::cout<<cos(currentTime) << std::endl;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -439,7 +448,89 @@ void myRenderCode(double currentTime) {
 		}
 		break;
 
+	/* 6.3. Change the z coordinate of the falling octocahedrons in a way that, when the same falling octocahedrons, when seen from the y-z 
+	plane are organized in random horizontal positions.*/
+	case 7:
 
+		if (update[7]) {
+
+			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+
+			//INIT STUFF
+
+			for (int i = 0; i < NUM_ROWS / 2; i++) {
+				for (int j = 0; j < NUM_COLS / 2; j++) {
+					zPos[i][j] = 2 * sqrt(2)*(rand() % 4);
+				}
+			}
+
+			for (int i = 0; i < EXERCISE_NUM; i++) {
+				update[i] = true;
+			}
+			update[7] = false;
+		}
+		RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+
+
+		for (int i = 0; i < NUM_ROWS / 2; i++) {
+			for (int j = 0; j < NUM_COLS / 2; j++) {
+
+				if (i % 2 == 0) {
+					if (j % 2 == 0) {
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
+					}
+				}
+				else {
+					if (j % 2 == 1) {
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 2*zPos[i][j], 1), true);
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), -2*zPos[i][j], 1), true);
+					}
+				}
+			}
+		}
+		break;
+
+	/* 6.3. Change the z coordinate of the falling octocahedrons in a way that, when the same falling octocahedrons, when seen from the y-z
+	plane are organized in random horizontal positions.*/
+	case 8:
+
+		if (update[8]) {
+
+			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+
+			//INIT STUFF
+
+			for (int i = 0; i < NUM_ROWS / 2; i++) {
+				for (int j = 0; j < NUM_COLS / 2; j++) {
+					zPos[i][j] = 2 * sqrt(2)*(rand() % 4);
+				}
+			}
+
+			for (int i = 0; i < EXERCISE_NUM; i++) {
+				update[i] = true;
+			}
+			update[8] = false;
+		}
+		RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+
+
+		for (int i = 0; i < NUM_ROWS / 2; i++) {
+			for (int j = 0; j < NUM_COLS / 2; j++) {
+
+				if (i % 2 == 0) {
+					if (j % 2 == 0) {
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
+					}
+				}
+				else {
+					if (j % 2 == 1) {
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 2 * zPos[i][j], 1), true);
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), -2 * zPos[i][j], 1), true);
+					}
+				}
+			}
+		}
+		break;
 
 	default:
 		break;
