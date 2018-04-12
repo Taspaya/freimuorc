@@ -417,7 +417,9 @@ void myRenderCode(double currentTime) {
 
 			//INIT STUFF
 			for (int i = 0; i < MAX_CUBES; i++) {
-				randomPositions[i] = GetRandomPoint();
+				randomPositions[i].x = (2 * sqrt(2)) * (rand()%10);
+				randomPositions[i].y = (2) * sqrt(2) * (rand() % 10);
+				randomPositions[i].z = rand() % 10;
 				rotAxis[i] = rand() % 3;
 			}
 
@@ -821,7 +823,7 @@ namespace MyOctahedronShader {
 			"#version 330 \n\
 			uniform mat4 rotation;\n\
 			uniform mat4 selfRot;\n\
-			uniform int IDAdd = 0;\n\
+			uniform int IDAdd;\n\
 			layout(triangles) in;\n\
 			layout(triangle_strip, max_vertices = 400) out;\n\
 			void main()\n\
@@ -1306,7 +1308,7 @@ namespace MyOctahedronShaderWireframe {
 			uniform mat4 rotation;\n\
 			uniform mat4 selfRot;\n\
 			layout(triangles) in;\n\
-			uniform int IDAdd = 0;\n\
+			uniform int IDAdd;\n\
 			layout(line_strip, max_vertices = 400) out;\n\
 			void main()\n\
 			{\n\
