@@ -41,6 +41,9 @@ bool update[EXERCISE_NUM];
 int w, h;
 int aux = 50;
 
+glm::mat4 rot;
+glm::vec3 rotVal = glm::vec3(0, 0, 0);
+
 namespace MyFirstShader {
 
 	void myInitCode(void);
@@ -211,6 +214,7 @@ void myInitCode(int width, int height) {
 
 	//int aux = 200;
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar); 
+	rot = glm::mat4(1);
 
 	MyFirstShader::myInitCode();
 	MyOctahedronShader::myInitCode();
@@ -225,11 +229,7 @@ void myRenderCode(double currentTime) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	RV::_modelView = glm::mat4(1.f);
-	RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
-	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
-	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
 
-	RV::_targetViewPoint = RV::_projection *RV::_modelView;
 
 	
 
@@ -490,14 +490,32 @@ void myRenderCode(double currentTime) {
 		}
 		break;
 
-	/* 6.3. Change the z coordinate of the falling octocahedrons in a way that, when the same falling octocahedrons, when seen from the y-z
-	plane are organized in random horizontal positions.*/
+	/* 6.4. Build a camera transition between the x-y plane and the y-z plane, and trigger it with a button to go back and forth. On one plane the 
+	falling octocahedrons should look close to task 4. On the other plane, the falling octocahedrons should look quite aligned with the bitruncated 
+	honeycomb..*/
+
+	////Sets the camera projection to perspective projection
+	//	RV::_projection = glm::perspective(RV::FOV, (float)display_w / (float)display_h, RV::zNear, RV::zFar);
+
+	//	//Value of closup
+	//	float closeup_val = -10 + fmod(currentTime, SCENETIME / 2);
+
+	//	//Moves the camera from front to back
+	//	glm::mat4 closeup = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, closeup_val));
+
+	//	//Sets the MVP to the multiplication of the projection matrix by the lateral travelling translation
+	//	RV::_MVP = RV::_projection * closeup;
+
+
 	case 8:
 
 		if (update[8]) {
 
 			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+			
+			
 
+			
 			//INIT STUFF
 
 			for (int i = 0; i < NUM_ROWS / 2; i++) {
@@ -511,8 +529,11 @@ void myRenderCode(double currentTime) {
 			}
 			update[8] = false;
 		}
-		RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+		RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 1000.f);
 
+		//Rotation of plane x,y to y,z
+		rot = glm::rotate(glm::mat4(1), (float)currentTime, glm::vec3(0,1,0));
+		//RV::_MVP = RV::_projection * rot;
 
 		for (int i = 0; i < NUM_ROWS / 2; i++) {
 			for (int j = 0; j < NUM_COLS / 2; j++) {
@@ -538,9 +559,13 @@ void myRenderCode(double currentTime) {
 
 
 	
+	RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
+	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
+	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
 
+	RV::_targetViewPoint = RV::_projection *RV::_modelView;
 	
-	RV::_MVP = RV::_projection * RV::_modelView;
+	RV::_MVP = RV::_projection * RV::_modelView * rot;
 	ImGui::Render();
 }
 
