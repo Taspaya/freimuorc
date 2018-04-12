@@ -165,11 +165,8 @@ void myGUI() {
 		ImGui::RadioButton("Exercise 4", &ex, 3);
 		ImGui::RadioButton("Exercise 5", &ex, 4);
 		ImGui::RadioButton("Exercise 6.1", &ex, 5);
-		ImGui::SameLine();
-		ImGui::RadioButton("Exercise 6.2", &ex, 6);
-		ImGui::RadioButton("Exercise 6.3", &ex, 7);
-		ImGui::SameLine();
-		ImGui::RadioButton("Exercise 6.4", &ex, 8);
+		ImGui::RadioButton("Exercise 6.2\nExercise 6.3\nExercise 6.4", &ex, 6);
+		
 
 
 	}
@@ -272,7 +269,7 @@ void myRenderCode(double currentTime) {
 	of the body-centered cube. A Voronoi cell is the 3D equivalent of a Voronoi space, as 
 	defined here: http://mathworld.wolfram.com/VoronoiDiagram.html*/
 	case 1:
-		//Reset of exercises
+		//Reset of exercises 
 		if (update[1]){
 				
 			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
@@ -358,8 +355,6 @@ void myRenderCode(double currentTime) {
 				if (matrix[i].num_elements > NUM_ROWS) {
 					matrix[i].num_elements = 2*matrix[i].num_elements - NUM_ROWS;
 				}
-
-				
 			}
 			for (int i = 0; i < EXERCISE_NUM; i++) {
 				update[i] = true;
@@ -421,6 +416,10 @@ void myRenderCode(double currentTime) {
 			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
 
 			//INIT STUFF
+			for (int i = 0; i < MAX_CUBES; i++) {
+				randomPositions[i] = GetRandomPoint();
+				rotAxis[i] = rand() % 3;
+			}
 
 			for (int i = 0; i < EXERCISE_NUM; i++) {
 				update[i] = true;
@@ -435,123 +434,27 @@ void myRenderCode(double currentTime) {
 
 				if (i % 2 == 0) {
 					if (j % 2 == 0) {
-						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0 - 20, 1));
 					}
 				}
 				else {
 					if (j % 2 == 1) {
-						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 2 * sqrt(2), 1), true);
-						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), -2 * sqrt(2), 1), true);
+						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 2 * sqrt(2)-20, 1));
+						//MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), -2 * sqrt(2), 1));
 					}
 				}
 			}
 		}
+
+		//MyOctahedronShader::myRenderCode(currentTime, glm::vec4(0,4*sqrt(2),0,1), true);
+		for (int i = 0; i < MAX_CUBES; i++) {
+			MyOctahedronShader::myRenderCode(currentTime, randomPositions[i], rotAxis[i]);			//Replace shader: use octahedron
+		}
+
+
 		break;
 
-	/* 6.3. Change the z coordinate of the falling octocahedrons in a way that, when the same falling octocahedrons, when seen from the y-z 
-	plane are organized in random horizontal positions.*/
-	case 7:
-
-		if (update[7]) {
-
-			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
-
-			//INIT STUFF
-
-			for (int i = 0; i < NUM_ROWS / 2; i++) {
-				for (int j = 0; j < NUM_COLS / 2; j++) {
-					zPos[i][j] = 2 * sqrt(2)*(rand() % 4);
-				}
-			}
-
-			for (int i = 0; i < EXERCISE_NUM; i++) {
-				update[i] = true;
-			}
-			update[7] = false;
-		}
-		RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
-
-
-		for (int i = 0; i < NUM_ROWS / 2; i++) {
-			for (int j = 0; j < NUM_COLS / 2; j++) {
-
-				if (i % 2 == 0) {
-					if (j % 2 == 0) {
-						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
-					}
-				}
-				else {
-					if (j % 2 == 1) {
-						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 2*zPos[i][j], 1), true);
-						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), -2*zPos[i][j], 1), true);
-					}
-				}
-			}
-		}
-		break;
-
-	/* 6.4. Build a camera transition between the x-y plane and the y-z plane, and trigger it with a button to go back and forth. On one plane the 
-	falling octocahedrons should look close to task 4. On the other plane, the falling octocahedrons should look quite aligned with the bitruncated 
-	honeycomb..*/
-
-	////Sets the camera projection to perspective projection
-	//	RV::_projection = glm::perspective(RV::FOV, (float)display_w / (float)display_h, RV::zNear, RV::zFar);
-
-	//	//Value of closup
-	//	float closeup_val = -10 + fmod(currentTime, SCENETIME / 2);
-
-	//	//Moves the camera from front to back
-	//	glm::mat4 closeup = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 0.f, closeup_val));
-
-	//	//Sets the MVP to the multiplication of the projection matrix by the lateral travelling translation
-	//	RV::_MVP = RV::_projection * closeup;
-
-
-	case 8:
-
-		if (update[8]) {
-
-			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
-			
-			
-
-			
-			//INIT STUFF
-
-			for (int i = 0; i < NUM_ROWS / 2; i++) {
-				for (int j = 0; j < NUM_COLS / 2; j++) {
-					zPos[i][j] = 2 * sqrt(2)*(rand() % 4);
-				}
-			}
-
-			for (int i = 0; i < EXERCISE_NUM; i++) {
-				update[i] = true;
-			}
-			update[8] = false;
-		}
-		RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 1000.f);
-
-		//Rotation of plane x,y to y,z
-		rot = glm::rotate(glm::mat4(1), (float)currentTime, glm::vec3(0,1,0));
-		//RV::_MVP = RV::_projection * rot;
-
-		for (int i = 0; i < NUM_ROWS / 2; i++) {
-			for (int j = 0; j < NUM_COLS / 2; j++) {
-
-				if (i % 2 == 0) {
-					if (j % 2 == 0) {
-						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 0, 1), true);
-					}
-				}
-				else {
-					if (j % 2 == 1) {
-						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 2 * zPos[i][j], 1), true);
-						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), -2 * zPos[i][j], 1), true);
-					}
-				}
-			}
-		}
-		break;
+	
 
 	default:
 		break;
