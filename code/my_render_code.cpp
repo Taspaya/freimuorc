@@ -1197,7 +1197,7 @@ namespace MyOctahedronShader {
 		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
 		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
 
-		glUniform1f(glGetUniformLocation(myRenderProgram, "param"), paramSlide);
+		glUniform1f(glGetUniformLocation(myRenderProgram, "param"), (float)abs(cos(currentTime))/*paramSlide*/);
 
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
 
