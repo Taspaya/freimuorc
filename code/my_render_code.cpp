@@ -65,7 +65,8 @@ namespace MyOctahedronShader {
 	void myCleanupCode(void);
 	void myRenderCode(double currentTime, glm::vec4 pos);
 	void myRenderCode(double currentTime, glm::vec4 pos, int axis);
-	void myRenderCodeMatrix(double currentTime, glm::vec4 pos, int axis, int speed, bool first);
+	void myRenderCodeMatrix(double currentTime, glm::vec4 pos, int axis, int speed, bool first); 
+	void myRenderCode(double currentTime, glm::vec4 pos, int axis, bool checkAlign);
 
 	GLuint myRenderProgram;
 	GLuint myVAO;
@@ -451,7 +452,7 @@ void myRenderCode(double currentTime) {
 
 		//MyOctahedronShader::myRenderCode(currentTime, glm::vec4(0,4*sqrt(2),0,1), true);
 		for (int i = 0; i < MAX_CUBES; i++) {
-			MyOctahedronShader::myRenderCode(currentTime, randomPositions[i], rotAxis[i]);			//Replace shader: use octahedron
+			MyOctahedronShader::myRenderCode(currentTime, randomPositions[i], rotAxis[i], true);			//Replace shader: use octahedron
 		}
 
 
@@ -1247,7 +1248,71 @@ namespace MyOctahedronShader {
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
+	//CODE THAT RENDERS ROTATIONAL AND TRANSLATIONAL OBJECTS IF ALIGNED
+	void myRenderCode(double currentTime, glm::vec4 pos, int axis, bool checkAlign) {
 
+		glUseProgram(myRenderProgram);
+		glm::mat4 rotation;
+		glm::mat4 translation;
+
+		glm::vec4 tmp = GetRandomPoint();
+		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
+		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
+
+
+		switch (axis) {
+
+			//Rotation with X axis
+		case 0:
+			rotation = { 1.0f, 0.f, 0.f, 0.f,
+				0.f, cos(currentTime), -sin(currentTime), 0.f,
+				0.f, sin(currentTime), cos(currentTime), 0.f,
+				0.f, 0.f, 0.f, 1.f };
+			break;
+
+			//Rotation with Y axis
+		case 1:
+			rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
+				0.f, 1.f, 0.f, 0.f,
+				sin(currentTime), 0.f, cos(currentTime), 0.f,
+				0.f, 0.f, 0.f, 1.f };
+			break;
+
+			//Rotation with Z axis
+		case 2:
+			rotation = { cos(currentTime), -sin(currentTime), 0.f, 0.f,
+				sin(currentTime), cos(currentTime), 0.f, 0.f,
+				0.f, 0.f, 1.f, 0.f,
+				0.f, 0.f, 0.f, 1.f };
+			break;
+		}
+
+		int IDAdd = 0;
+		float offset = 0.01;
+
+
+		if ((cos(currentTime) >= -offset * 2) && (cos(currentTime) <= offset * 10)  /*|| (cos(currentTime) > -1) && (cos(currentTime) <= (-1 + offset )) || (cos(currentTime) >= (1 - offset )) && (cos(currentTime) < 1)*/) {
+			IDAdd = 6;
+			//std::cout << cos(currentTime) <<std::endl;
+		}
+		else {
+			IDAdd = 0;
+		}
+
+		glUniform1i(glGetUniformLocation(myRenderProgram, "IDAdd"), IDAdd);
+
+
+		//Translate the cubes
+		translation = glm::translate(glm::mat4(1), glm::vec3(0.f, (fmod(-currentTime, 16.f)+16) /2, 0.f));
+
+		glUniform1f(glGetUniformLocation(myRenderProgram, "param"), paramSlide);
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP*translation));
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(rotation));
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
 
 	//CODE THAT RENDERS THE MATRIX
 	void myRenderCodeMatrix(double currentTime, glm::vec4 pos, int axis, int speed, bool first) {
@@ -1353,20 +1418,19 @@ namespace MyOctahedronShaderWireframe {
 			uniform mat4 selfRot;\n\
 			layout(triangles) in;\n\
 			uniform int IDAdd;\n\
-			uniform float param;\n\
 			layout(line_strip, max_vertices = 400) out;\n\
 			void main()\n\
 			{\n\
 				//HEXAGON\n\
 				//CARA A\n\
 				vec4 verticesA[7] = vec4[7](\n\
-												vec4(0+(sqrt(2)*param), 2 * sqrt(2)- (sqrt(2)*param), sqrt(2), 1.0),/*E*/ \n\
-												vec4(0+(sqrt(2)*param), sqrt(2), 2 * sqrt(2)- (sqrt(2)*param), 1.0),/*A*/ \n\
-												vec4(sqrt(2), 0+(sqrt(2)*param), 2 * sqrt(2)- (sqrt(2)*param), 1.0),/*V*/ \n\
-												vec4(2 * sqrt(2)- (sqrt(2)*param), 0+(sqrt(2)*param), sqrt(2), 1.0),/*R*/ \n\
-												vec4(2 * sqrt(2)- (sqrt(2)*param), sqrt(2), 0+(sqrt(2)*param), 1.0),/*N*/ \n\
-												vec4(sqrt(2), 2 * sqrt(2)- (sqrt(2)*param), 0+(sqrt(2)*param), 1.0),/*M*/ \n\
-												vec4(0+(sqrt(2)*param), 2 * sqrt(2) - (sqrt(2)*param), sqrt(2), 1.0));/*E*/ \n\
+												vec4(0, 2 * sqrt(2), sqrt(2), 1.0),/*E*/ \n\
+												vec4(0, sqrt(2), 2 * sqrt(2), 1.0),/*A*/ \n\
+												vec4(sqrt(2), 0, 2 * sqrt(2), 1.0),/*V*/ \n\
+												vec4(2 * sqrt(2), 0, sqrt(2), 1.0),/*R*/ \n\
+												vec4(2 * sqrt(2), sqrt(2), 0, 1.0),/*N*/ \n\
+												vec4(sqrt(2), 2 * sqrt(2), 0, 1.0),/*M*/ \n\
+												vec4(0, 2 * sqrt(2), sqrt(2), 1.0));/*E*/ \n\
 				\n\
 				for (int i = 0; i<7; i++)\n\
 				{\n\
@@ -1584,8 +1648,6 @@ namespace MyOctahedronShaderWireframe {
 		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
 		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
 
-		glUniform1f(glGetUniformLocation(myRenderProgram, "param"), paramSlide);
-
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
 
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(rotation));
@@ -1608,7 +1670,7 @@ namespace MyOctahedronShaderWireframe {
 		float offset = 0.01;
 
 
-		if ((cos(currentTime) >= -offset*2) && (cos(currentTime) <= offset*10) || (cos(currentTime) > -1) && (cos(currentTime) <= (-1 + offset/4)) || (cos(currentTime) >= (1 - offset / 4)) && (cos(currentTime) < 1)) {
+		if ((cos(currentTime) >= -offset * 2) && (cos(currentTime) <= offset * 10) || (cos(currentTime) > -1) && (cos(currentTime) <= (-1 + offset / 4)) || (cos(currentTime) >= (1 - offset / 4)) && (cos(currentTime) < 1)) {
 			IDAdd = 6;
 			//std::cout << cos(currentTime) <<std::endl;
 		}
@@ -1710,3 +1772,4 @@ namespace MyOctahedronShaderWireframe {
 	}
 
 }
+
