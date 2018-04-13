@@ -40,6 +40,7 @@ bool update[EXERCISE_NUM];
 
 int w, h;
 int aux = 50;
+float angle = 0.f;
 float paramSlide = 0.f;
 glm::mat4 rot;
 glm::vec3 rotVal = glm::vec3(0, 0, 0);
@@ -231,7 +232,7 @@ void myRenderCode(double currentTime) {
 
 	RV::_modelView = glm::mat4(1.f);
 
-
+	glm::mat4 auxMatrix = glm::mat4(1);
 	
 
 	//	RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
@@ -417,6 +418,9 @@ void myRenderCode(double currentTime) {
 	case 6:
 		if (update[6]) {
 
+			auxMatrix = glm::mat4(1);
+			angle = 0;
+
 			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
 
 			//INIT STUFF
@@ -457,6 +461,10 @@ void myRenderCode(double currentTime) {
 			MyOctahedronShader::myRenderCode(currentTime, randomPositions[i], rotAxis[i], true);			//Replace shader: use octahedron
 		}
 
+		angle += 0.01f;
+		angle = fmod(angle, 1.55f);
+
+		auxMatrix = glm::rotate(glm::mat4(1), angle, glm::vec3(0, 1, 0));
 
 		break;
 
@@ -491,7 +499,7 @@ void myRenderCode(double currentTime) {
 
 	RV::_targetViewPoint = RV::_projection *RV::_modelView;
 	
-	RV::_MVP = RV::_projection * RV::_modelView * rot;
+	RV::_MVP = RV::_projection * RV::_modelView * rot*auxMatrix;
 	ImGui::Render();
 }
 
