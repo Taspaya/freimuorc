@@ -166,7 +166,9 @@ void myGUI() {
 		ImGui::RadioButton("Exercise 4", &ex, 3);
 		ImGui::RadioButton("Exercise 5", &ex, 4);
 		ImGui::RadioButton("Exercise 6.1", &ex, 5);
-		ImGui::RadioButton("Exercise 6.2\nExercise 6.3\nExercise 6.4", &ex, 6);
+		ImGui::RadioButton("Exercise 6.2", &ex, 6);
+		ImGui::Text("   Exercise 6.3");
+		ImGui::Text("   Exercise 6.4");
 		ImGui::RadioButton("Proves", &ex, 7);
 
 		ImGui::SliderFloat("Param", &paramSlide, 0.0f, 1.0f);
