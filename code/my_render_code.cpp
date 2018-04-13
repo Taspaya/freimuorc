@@ -170,9 +170,6 @@ void myGUI() {
 		ImGui::RadioButton("Exercise 6.2", &ex, 6);
 		ImGui::Text("   Exercise 6.3");
 		ImGui::Text("   Exercise 6.4");
-		ImGui::RadioButton("Proves", &ex, 7);
-
-		ImGui::SliderFloat("Param", &paramSlide, 0.0f, 1.0f);
 
 	}
 	// .........................
@@ -466,26 +463,6 @@ void myRenderCode(double currentTime) {
 
 		auxMatrix = glm::rotate(glm::mat4(1), angle, glm::vec3(0, 1, 0));
 
-		break;
-
-	
-	case 7:
-		if (update[1]) {
-
-			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
-
-			randomPositions[0] = glm::vec4(-2 * sqrt(2), 0, 0, 1);
-			randomPositions[1] = glm::vec4(2 * sqrt(2), 0, 0, 1);
-			randomPositions[2] = glm::vec4(0, 2 * sqrt(2), -2 * sqrt(2), 1);
-			randomPositions[3] = glm::vec4(0, 2 * sqrt(2), 2 * sqrt(2), 1);
-			for (int i = 0; i < EXERCISE_NUM; i++) {
-				update[i] = true;
-			}
-			update[1] = false;
-		}
-		for (int i = 0; i < MAX_CUBES; i++) {
-			MyOctahedronShader::myRenderCode(currentTime, randomPositions[i]);
-		}
 		break;
 	default:
 		break;
@@ -849,13 +826,13 @@ namespace MyOctahedronShader {
 
 #pragma region "Octahedron"
 		static const GLchar * geom_shader_source[] = {
-			"#version 330 \n\
+			"\#version 330 \n\
 			uniform mat4 rotation;\n\
 			uniform mat4 selfRot;\n\
 			uniform int IDAdd;\n\
 			uniform float param;\n\
 			layout(triangles) in;\n\
-			layout(triangle_strip, max_vertices = 400) out;\n\
+			layout(triangle_strip, max_vertices = 256) out;\n\
 			void main()\n\
 			{\n\
 				//HEXAGON\n\
@@ -1011,7 +988,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<8; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCA[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5+IDAdd;\n\
+					gl_PrimitiveID = 0+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1030,7 +1007,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<8; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCB[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5+IDAdd;\n\
+					gl_PrimitiveID = 1+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1049,7 +1026,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<8; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCC[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5+IDAdd;\n\
+					gl_PrimitiveID = 2+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1068,7 +1045,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<8; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCD[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5+IDAdd;\n\
+					gl_PrimitiveID = 3+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1087,7 +1064,7 @@ namespace MyOctahedronShader {
 			for (int i = 0; i<8; i++) \n\
 				{\n\
 					gl_Position = rotation*(selfRot*verticesCE[i]+gl_in[0].gl_Position);\n\
-					gl_PrimitiveID = 5+IDAdd;\n\
+					gl_PrimitiveID = 4+IDAdd;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1111,6 +1088,189 @@ namespace MyOctahedronShader {
 				}\n\
 				EndPrimitive();\n\
 				\n\
+				\n\
+			"
+			"\
+				// CARA RECTANGULO A \n\
+				vec4 verticesRA[4] = vec4[4](\n\
+												vec4(0 + (sqrt(2) * param), sqrt(2), 2 * sqrt(2) - (sqrt(2) * param), 1.0),/*A*/ \n\
+												vec4(0 + (sqrt(2) * param), 2 * sqrt(2) - (sqrt(2) * param), sqrt(2), 1.0),/*E*/ \n\
+												vec4(0 + (sqrt(2) * -param), sqrt(2), 2 * sqrt(2) - (sqrt(2) * param), 1.0),/*A'*/ \n\
+												vec4(0 + (sqrt(2) * -param), 2 * sqrt(2) - (sqrt(2) * param), sqrt(2), 1.0));/*E'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRA[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 0+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO B \n\
+				vec4 verticesRB[4] = vec4[4](\n\
+												vec4(-sqrt(2), 0 + (sqrt(2) * param), 2 * sqrt(2) - (sqrt(2) * param), 1.0),/*W*/ \n\
+												vec4(-2 * sqrt(2) + (sqrt(2) * param), 0 + (sqrt(2) * param), sqrt(2), 1.0),/*S*/ \n\
+												vec4(-sqrt(2), 0 + (sqrt(2) * -param), 2 * sqrt(2) - (sqrt(2) * param), 1.0),/*W'*/ \n\
+												vec4(-2 * sqrt(2) + (sqrt(2) * param), 0 + (sqrt(2) * -param), sqrt(2), 1.0));/*S'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRB[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 1+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO C \n\
+				vec4 verticesRC[4] = vec4[4](\n\
+												vec4(0 + (sqrt(2) * param), -2 * sqrt(2) - (sqrt(2) * -param), sqrt(2), 1.0),/*F*/ \n\
+												vec4(0 + (sqrt(2) * param), -sqrt(2), 2 * sqrt(2) - (sqrt(2) * param), 1.0),/*B*/ \n\
+												vec4(0 + (sqrt(2) * -param), -2 * sqrt(2) - (sqrt(2) * -param), sqrt(2), 1.0),/*F'*/ \n\
+												vec4(0 + (sqrt(2) * -param), -sqrt(2), 2 * sqrt(2) - (sqrt(2) * param), 1.0));/*B'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRC[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 2+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO D \n\
+				vec4 verticesRD[4] = vec4[4](\n\
+												vec4(2 * sqrt(2) - (sqrt(2) * param), sqrt(2), 0 + (sqrt(2) * -param), 1.0),/*N*/ \n\
+												vec4(sqrt(2), 2 * sqrt(2) - (sqrt(2) * param), 0 + (sqrt(2) * -param), 1.0),/*M*/ \n\
+												vec4(2 * sqrt(2) - (sqrt(2) * param), sqrt(2), 0 + (sqrt(2) * param), 1.0),/*N'*/ \n\
+												vec4(sqrt(2), 2 * sqrt(2) - (sqrt(2) * param), 0 + (sqrt(2) * param), 1.0));/*M'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRD[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 3+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO E \n\
+				vec4 verticesRE[4] = vec4[4](\n\
+												vec4(2 * sqrt(2) - (sqrt(2) * param), 0 + (sqrt(2) * -param), -sqrt(2), 1.0),/*T*/ \n\
+												vec4(sqrt(2), 0 + (sqrt(2) * -param), -2 * sqrt(2) - (sqrt(2) * -param), 1.0),/*Z*/ \n\
+												vec4(2 * sqrt(2) - (sqrt(2) * param), 0 + (sqrt(2) * param), -sqrt(2), 1.0),/*T'*/ \n\
+												vec4(sqrt(2), 0 + (sqrt(2) * param), -2 * sqrt(2) - (sqrt(2) * -param), 1.0));/*Z'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRE[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 4+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO F \n\
+				vec4 verticesRF[4] = vec4[4](\n\
+												vec4(0 + (sqrt(2) * param), 2 * sqrt(2) - (sqrt(2) * param), -sqrt(2), 1.0),/*G*/ \n\
+												vec4(0 + (sqrt(2) * param), sqrt(2), -2 * sqrt(2) - (sqrt(2) * -param), 1.0),/*C*/ \n\
+												vec4(0 + (sqrt(2) * -param), 2 * sqrt(2) - (sqrt(2) * param), -sqrt(2), 1.0),/*G'*/ \n\
+												vec4(0 + (sqrt(2) * -param), sqrt(2), -2 * sqrt(2) - (sqrt(2) * -param), 1.0));/*C'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRF[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO G \n\
+				vec4 verticesRG[4] = vec4[4](\n\
+												vec4(0 + (sqrt(2) * -param), -2 * sqrt(2) - (sqrt(2) * -param), -sqrt(2), 1.0),/*H*/ \n\
+												vec4(0 + (sqrt(2) * -param), -sqrt(2), -2 * sqrt(2)- (sqrt(2) * -param), 1.0),/*D*/ \n\
+												vec4(0 + (sqrt(2) * param), -2 * sqrt(2) - (sqrt(2) * -param), -sqrt(2), 1.0),/*H'*/ \n\
+												vec4(0 + (sqrt(2) * param), -sqrt(2), -2 * sqrt(2)- (sqrt(2) * -param), 1.0));/*D'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRG[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 0+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO H \n\
+				vec4 verticesRH[4] = vec4[4](\n\
+												vec4(sqrt(2), -2 * sqrt(2) - (sqrt(2) * -param), 0 + (sqrt(2) * -param), 1.0),/*K*/ \n\
+												vec4(2 * sqrt(2) - (sqrt(2) * param), -sqrt(2), 0 + (sqrt(2) * -param), 1.0),/*P*/ \n\
+												vec4(sqrt(2), -2 * sqrt(2) - (sqrt(2) * -param), 0 + (sqrt(2) * param), 1.0),/*K'*/ \n\
+												vec4(2 * sqrt(2) - (sqrt(2) * param), -sqrt(2), 0 + (sqrt(2) * param), 1.0));/*P'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRH[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 1+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO I \n\
+				vec4 verticesRI[4] = vec4[4](\n\
+												vec4(-2 * sqrt(2) - (sqrt(2) * -param), -sqrt(2), 0 + (sqrt(2) * -param), 1.0),/*Q*/ \n\
+												vec4(-sqrt(2), -2 * sqrt(2) - (sqrt(2) * -param), 0 + (sqrt(2) * -param), 1.0),/*L*/ \n\
+												vec4(-2 * sqrt(2) - (sqrt(2) * -param), -sqrt(2), 0 + (sqrt(2) * param), 1.0),/*Q'*/ \n\
+												vec4(-sqrt(2), -2 * sqrt(2) - (sqrt(2) * -param), 0 + (sqrt(2) * param), 1.0));/*L'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRI[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 2+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO J \n\
+				vec4 verticesRJ[4] = vec4[4](\n\
+												vec4(-sqrt(2), 2 * sqrt(2) - (sqrt(2) * param), 0 + (sqrt(2) * -param), 1.0),/*J*/ \n\
+												vec4(-2 * sqrt(2) + (sqrt(2) * param), sqrt(2), 0 + (sqrt(2) * -param), 1.0),/*O*/ \n\
+												vec4(-sqrt(2), 2 * sqrt(2) - (sqrt(2) * param), 0 + (sqrt(2) * param), 1.0),/*J'*/ \n\
+												vec4(-2 * sqrt(2) + (sqrt(2) * param), sqrt(2), 0 + (sqrt(2) * param), 1.0));/*O'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRJ[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 3+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO K \n\
+				vec4 verticesRK[4] = vec4[4](\n\
+												vec4(-2 * sqrt(2) - (sqrt(2) * -param), 0 + (sqrt(2) * param), -sqrt(2), 1.0),/*U*/ \n\
+												vec4(-sqrt(2), 0 + (sqrt(2) * param), -2 * sqrt(2) - (sqrt(2) * -param), 1.0),/*AA*/ \n\
+												vec4(-2 * sqrt(2) - (sqrt(2) * -param), 0 + (sqrt(2) * -param), -sqrt(2), 1.0),/*U'*/ \n\
+												vec4(-sqrt(2), 0 + (sqrt(2) * -param), -2 * sqrt(2) - (sqrt(2) * -param), 1.0));/*AA'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRK[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 4+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				// CARA RECTANGULO L \n\
+				vec4 verticesRL[4] = vec4[4](\n\
+												vec4(sqrt(2), 0 + (sqrt(2) * -param), 2 * sqrt(2) - (sqrt(2) * param), 1.0),/*V*/ \n\
+												vec4(2 * sqrt(2) - (sqrt(2) * param), 0 + (sqrt(2) * -param), sqrt(2), 1.0),/*R*/ \n\
+												vec4(sqrt(2), 0 + (sqrt(2) * param), 2 * sqrt(2) - (sqrt(2) * param), 1.0),/*V'*/ \n\
+												vec4(2 * sqrt(2) - (sqrt(2) * param), 0 + (sqrt(2) * param), sqrt(2), 1.0));/*R'*/ \n\
+			\n\
+			for (int i = 0; i<4; i++) \n\
+				{\n\
+					gl_Position = rotation*(selfRot*verticesRL[i]+gl_in[0].gl_Position);\n\
+					gl_PrimitiveID = 5+IDAdd;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
 			}"
 		};
 #pragma endregion
@@ -1122,7 +1282,7 @@ namespace MyOctahedronShader {
 			out vec4 color;\n\
 			\n\
 			void main() {\n\
-			const vec4 colors[12] = vec4[12](vec4( 0, 1, 0, 1.0),\n\
+			const vec4 colors[13] = vec4[13](vec4( 0, 1, 0, 1.0),\n\
 											vec4(0, 0.8, 0, 1.0),\n\
 											vec4( 0, 0.7, 0, 1.0),\n\
 											vec4(0, 0.77, 0, 1.0),\n\
@@ -1133,7 +1293,8 @@ namespace MyOctahedronShader {
 											vec4(0.9, 1, 1, 1.0),\n\
 											vec4(1, 1, 0.9, 1.0),\n\
 											vec4(0.9, 0.9, 1, 1.0),\n\
-											vec4(1, 0.9, 0.9, 1.0));\n\
+											vec4(1, 0.9, 0.9, 1.0),\n\
+											vec4(1, 0.1, 0.1, 1.0));\n\
 			color = colors[gl_PrimitiveID];\n\
 			}" };
 
@@ -1428,7 +1589,7 @@ namespace MyOctahedronShaderWireframe {
 			uniform mat4 selfRot;\n\
 			layout(triangles) in;\n\
 			uniform int IDAdd;\n\
-			layout(line_strip, max_vertices = 400) out;\n\
+			layout(line_strip, max_vertices = 100) out;\n\
 			void main()\n\
 			{\n\
 				//HEXAGON\n\
