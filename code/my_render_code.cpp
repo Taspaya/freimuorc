@@ -230,10 +230,8 @@ void myRenderCode(double currentTime) {
 	RV::_modelView = glm::mat4(1.f);
 
 	glm::mat4 auxMatrix = glm::mat4(1);
-	
 
-	//	RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
-	// RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
+
 
 	//SWITCH STATEMENT: to check exercises
 	switch (ex) {
@@ -248,7 +246,15 @@ void myRenderCode(double currentTime) {
 		//Reset of exercises
 		if (update[0]) {
 
+			RV::rota[0] = 0.f;
+			RV::rota[1] = 0.f;
+
+			RV::panv[0] = 0.f;
+			RV::panv[1] = 0.f;
+			RV::panv[2] = -20.f;
+
 			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
+
 
 			for (int i = 0; i < MAX_CUBES; i++) {
 				randomPositions[i] = GetRandomPoint();
@@ -274,6 +280,13 @@ void myRenderCode(double currentTime) {
 		//Reset of exercises 
 		if (update[1]){
 				
+			RV::rota[0] = -45.f;
+			RV::rota[1] = 45.f;
+
+			RV::panv[0] = 0.f;
+			RV::panv[1] = 0.f;
+			RV::panv[2] = -15.f;
+
 			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
 
 			randomPositions[0] = glm::vec4(-2*sqrt(2), 0, 0, 1);
@@ -298,6 +311,13 @@ void myRenderCode(double currentTime) {
 		//Reset of exercises
 		if (update[2]) {
 
+			RV::rota[0] = -45.f;
+			RV::rota[1] = 0.f;
+
+			RV::panv[0] = 0.f;
+			RV::panv[1] = 0.f;
+			RV::panv[2] = -15.f;
+
 			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
 
 			for (int i = 0; i < MAX_CUBES; i++) {
@@ -321,6 +341,13 @@ void myRenderCode(double currentTime) {
 	case 3:
 		//Reset of exercises
 		if (update[3]) {
+
+			RV::rota[0] = -45.f;
+			RV::rota[1] = 45.f;
+
+			RV::panv[0] = 0.f;
+			RV::panv[1] = 0.f;
+			RV::panv[2] = -25.f;
 
 			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
 
@@ -348,6 +375,13 @@ void myRenderCode(double currentTime) {
 		if (update[4]) {
 
 			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
+
+			RV::rota[0] = 0.f;
+			RV::rota[1] = 0.f;
+
+			RV::panv[0] = -50.f;
+			RV::panv[1] = 0.f;
+			RV::panv[2] = -100.f;
 
 			for (int i = 0; i < NUM_COLS; i++) {
 				matrix[i].speed = rand() % 20 + 5;
@@ -390,7 +424,17 @@ void myRenderCode(double currentTime) {
 		//Reset of exercises
 		if (update[5]) {
 
+			RV::rota[0] = 0.f;
+			RV::rota[1] = 0.f;
+
+			RV::panv[0] = 0.f;
+			RV::panv[1] = 0.f;
+			RV::panv[2] = -15.f;
+
 			RV::_projection = glm::perspective(RV::FOV, (float)w / (float)h, RV::zNear, RV::zFar);
+
+			RV::rota[0] = 0.f;
+			RV::rota[1] = 0.f;
 
 			randomPositions[0] = glm::vec4(-2 * sqrt(2), 0, 0, 1);
 			randomPositions[1] = glm::vec4(2 * sqrt(2), 0, 0, 1);
@@ -419,6 +463,13 @@ void myRenderCode(double currentTime) {
 			angle = 0;
 
 			RV::_projection = glm::ortho((float)(-w / aux), (float)(w / aux), (float)(-h / aux), (float)(h / aux), 0.01f, 100.f);
+
+			RV::rota[0] = 0.f;
+			RV::rota[1] = 0.f;
+
+			RV::panv[0] = 0.f;
+			RV::panv[1] = -10.f;
+			RV::panv[2] = -15.f;
 
 			//INIT STUFF
 			for (int i = 0; i < MAX_CUBES; i++) {
