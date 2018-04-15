@@ -95,8 +95,6 @@ namespace ImGui {
 }
 
 
-
-//PENSAR SI SE INCLUYEN TODAS O NO
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
 	const float zNear = 1.f;
@@ -127,6 +125,7 @@ void GLResize(int width, int height) {
 	else RV::_projection = glm::perspective(RV::FOV, 0.f, RV::zNear, RV::zFar);
 }
 
+/* MOUSE CONTROL */
 void GLmousecb(MouseEvent ev) {
 	if (RV::prevMouse.waspressed && RV::prevMouse.button == ev.button) {
 		float diffx = ev.posx - RV::prevMouse.lastx;
@@ -195,12 +194,7 @@ void myInitCode(int width, int height) {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	/*for (int i = 0; i < MAX_CUBES; i++) {
-		randomPositions[i] = GetRandomPoint();
-	}*/
-
 	for (int i = 0; i < EXERCISE_NUM; i++) {
-
 		update[i] = true;
 	}
 
@@ -211,7 +205,6 @@ void myInitCode(int width, int height) {
 		}
 	}
 
-	//int aux = 200;
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar); 
 	rot = glm::mat4(1);
 
@@ -222,8 +215,6 @@ void myInitCode(int width, int height) {
 
 
 void myRenderCode(double currentTime) {
-
-	//std::cout<<cos(currentTime) << std::endl;
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -498,13 +489,11 @@ void myRenderCode(double currentTime) {
 				else {
 					if (j % 2 == 1) {
 						MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), 2 * sqrt(2)-20, 1));
-						//MyOctahedronShaderWireframe::myRenderCode(currentTime, glm::vec4(j * 2 * sqrt(2), i * 2 * sqrt(2), -2 * sqrt(2), 1));
 					}
 				}
 			}
 		}
 
-		//MyOctahedronShader::myRenderCode(currentTime, glm::vec4(0,4*sqrt(2),0,1), true);
 		for (int i = 0; i < MAX_CUBES; i++) {
 			MyOctahedronShader::myRenderCode(currentTime, randomPositions[i], rotAxis[i], true);			//Replace shader: use octahedron
 		}
@@ -751,8 +740,7 @@ namespace MyFirstShader {
 	void  myInitCode(void) {
 
 		myRenderProgram = myShaderCompile();
-		//glCreateVertexArrays(1, &myVAO); //use this one on class pc
-		glGenVertexArrays(1, &myVAO);		//Use this one on home pc
+		glGenVertexArrays(1, &myVAO);
 		glBindVertexArray(myVAO);
 
 		glUseProgram(myRenderProgram);
@@ -826,18 +814,12 @@ namespace MyFirstShader {
 		//Translate the cubes
 		translation = glm::translate(glm::mat4(1), glm::vec3(0.f, fmod(-currentTime, 10.f)+5.f, 0.f));
 		
-		
-
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP*translation));
 
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(rotation));
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
-
-
-
-	
 
 }
 
@@ -866,7 +848,7 @@ namespace MyOctahedronShader {
 
 		static const GLchar * vertex_shader_source[] =
 		{
-			"#version 330										\n\
+			"#version 330 \n\
 			\n\
 			uniform vec4 inOne;\n\
 			void main() {\n\
@@ -1386,8 +1368,7 @@ namespace MyOctahedronShader {
 	void  myInitCode(void) {
 
 		myRenderProgram = myShaderCompile();
-		//glCreateVertexArrays(1, &myVAO); //use this one on class pc
-		glGenVertexArrays(1, &myVAO);		//Use this one on home pc
+		glGenVertexArrays(1, &myVAO);
 		glBindVertexArray(myVAO);
 
 		glUseProgram(myRenderProgram);
@@ -1409,7 +1390,7 @@ namespace MyOctahedronShader {
 		GLint loc = glGetUniformLocation(myRenderProgram, "inOne");
 		glUniform4f(loc, pos.x, pos.y, pos.z, 1);
 
-		glUniform1f(glGetUniformLocation(myRenderProgram, "param"), (float)abs(cos(currentTime))/*paramSlide*/);
+		glUniform1f(glGetUniformLocation(myRenderProgram, "param"), (float)abs(cos(currentTime)));
 
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
 
@@ -1513,9 +1494,8 @@ namespace MyOctahedronShader {
 		float offset = 0.01;
 
 
-		if ((cos(currentTime) >= -offset * 2) && (cos(currentTime) <= offset * 10)  /*|| (cos(currentTime) > -1) && (cos(currentTime) <= (-1 + offset )) || (cos(currentTime) >= (1 - offset )) && (cos(currentTime) < 1)*/) {
+		if ((cos(currentTime) >= -offset * 2) && (cos(currentTime) <= offset * 10)) {
 			IDAdd = 6;
-			//std::cout << cos(currentTime) <<std::endl;
 		}
 		else {
 			IDAdd = 0;
@@ -1624,7 +1604,7 @@ namespace MyOctahedronShaderWireframe {
 
 		static const GLchar * vertex_shader_source[] =
 		{
-			"#version 330										\n\
+			"#version 330 \n\
 			\n\
 			uniform vec4 inOne;\n\
 			void main() {\n\
@@ -1847,8 +1827,7 @@ namespace MyOctahedronShaderWireframe {
 	void  myInitCode(void) {
 
 		myRenderProgram = myShaderCompile();
-		//glCreateVertexArrays(1, &myVAO); //use this one on class pc
-		glGenVertexArrays(1, &myVAO);		//Use this one on home pc
+		glGenVertexArrays(1, &myVAO);
 		glBindVertexArray(myVAO);
 
 		glUseProgram(myRenderProgram);
@@ -1876,7 +1855,7 @@ namespace MyOctahedronShaderWireframe {
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
-	//
+
 	//CODE THAT RENDERS ROTATIONAL AND TRANSLATIONAL OBJECTS
 	void myRenderCode(double currentTime, glm::vec4 pos, int axis) {
 
@@ -1894,7 +1873,6 @@ namespace MyOctahedronShaderWireframe {
 
 		if ((cos(currentTime) >= -offset * 2) && (cos(currentTime) <= offset * 10) || (cos(currentTime) > -1) && (cos(currentTime) <= (-1 + offset / 4)) || (cos(currentTime) >= (1 - offset / 4)) && (cos(currentTime) < 1)) {
 			IDAdd = 6;
-			//std::cout << cos(currentTime) <<std::endl;
 		}
 		else {
 			IDAdd = 0;
